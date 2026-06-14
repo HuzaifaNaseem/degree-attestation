@@ -110,6 +110,12 @@ export default function VerifyForm() {
         >
           {loading ? "Verifying on-chain…" : "Verify Degree"}
         </Button>
+
+        {loading && (
+          <p className="text-xs text-muted text-center leading-relaxed">
+            ⏳ Confirming on the blockchain — this can take up to a minute on first use. Please wait.
+          </p>
+        )}
       </form>
 
       {/* Result panel */}

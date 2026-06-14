@@ -148,6 +148,13 @@ export default function DegreeForm({ onSuccess }) {
         <Button type="submit" loading={loading} data-testid="submit-issue" className="w-full">
           {loading ? "Issuing on-chain…" : "Issue Degree"}
         </Button>
+
+        {loading && (
+          <p className="text-xs text-muted text-center leading-relaxed">
+            ⏳ Submitting to the blockchain — this can take up to a minute on first use
+            (waking the server + on-chain confirmation). Please wait and don't click again.
+          </p>
+        )}
       </form>
     </>
   );

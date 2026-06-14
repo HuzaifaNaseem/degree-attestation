@@ -97,6 +97,12 @@ export default function RevokeDialog({ degree, onClose, onDone }) {
                 {loading ? "Revoking…" : "Revoke on-chain"}
               </Button>
             </div>
+
+            {loading && (
+              <p className="text-xs text-muted text-center leading-relaxed">
+                ⏳ Confirming on the blockchain — this can take up to a minute on first use. Please wait.
+              </p>
+            )}
           </form>
         </motion.div>
       </motion.div>
