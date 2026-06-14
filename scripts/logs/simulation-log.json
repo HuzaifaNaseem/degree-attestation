@@ -1,0 +1,270 @@
+{
+  "meta": {
+    "runAt": "2026-06-14T12:49:59.857Z",
+    "network": "localhost",
+    "chainId": 1337,
+    "contractAddress": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
+    "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+  },
+  "participants": {
+    "admin": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "university1": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+    "university2": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+    "employer1": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+    "employer2": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65"
+  },
+  "students": [
+    {
+      "name": "Ali Hassan",
+      "studentId": "IU-2024-001",
+      "program": "BSCS",
+      "graduationDate": 1717200000
+    },
+    {
+      "name": "Sara Khan",
+      "studentId": "IU-2024-002",
+      "program": "BSCE",
+      "graduationDate": 1717286400
+    },
+    {
+      "name": "Umar Farooq",
+      "studentId": "IU-2024-003",
+      "program": "BSIT",
+      "graduationDate": 1717372800
+    }
+  ],
+  "issuedDegrees": [
+    {
+      "hash": "0xa2d7f7dd753604c3d6a368eeed651257fff10588a36fee7b2408fa9fb4b6a941",
+      "student": "Ali Hassan",
+      "studentId": "IU-2024-001",
+      "program": "BSCS",
+      "university": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+    },
+    {
+      "hash": "0xebcffdf761d8d28392027b09f2e7660a2f000fd5123f62c2bb27c08ac9e11103",
+      "student": "Sara Khan",
+      "studentId": "IU-2024-002",
+      "program": "BSCE",
+      "university": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+    },
+    {
+      "hash": "0xc3dae8f98e47651ffff87ff3e7ff3132b2cae209528086d13eb3b6f462733a78",
+      "student": "Umar Farooq",
+      "studentId": "IU-2024-003",
+      "program": "BSIT",
+      "university": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+    },
+    {
+      "hash": "0x73a345c46671967902de4452712941bf4d447a7cea98f9f2af61b8a58f764995",
+      "student": "Ali Hassan",
+      "studentId": "IU-2024-001",
+      "program": "BSCS",
+      "university": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"
+    },
+    {
+      "hash": "0x67662333248a75fafdeb910fa1bbeffa812dc80133a59f206916123350700b58",
+      "student": "Sara Khan",
+      "studentId": "IU-2024-002",
+      "program": "BSCE",
+      "university": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"
+    }
+  ],
+  "fakeHash": "0x984d6766425f5c8fd34dbd5c08c9581c3ba6e4648123e18095c8eb79e0385ccb",
+  "transactions": [
+    {
+      "step": 1,
+      "pdfRequirement": "PDF §1 — Register university",
+      "action": "GRANT_UNIVERSITY_ROLE",
+      "actor": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "actorRole": "admin",
+      "txHash": "0x7605e538d88565c96b655a1a83a59655ab53bb07153b20e98fc4f7058d348681",
+      "gasUsed": 48922,
+      "blockNumber": 25,
+      "blockTimestamp": 1781441415,
+      "blockTime": "2026-06-14T12:50:15.000Z",
+      "status": "SUCCESS",
+      "notes": "University 1 → 0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+    },
+    {
+      "step": 1,
+      "pdfRequirement": "PDF §1 — Register university",
+      "action": "GRANT_UNIVERSITY_ROLE",
+      "actor": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "actorRole": "admin",
+      "txHash": "0xa40aede3cf998ccb8267b27aea9f8b5985457ba719148b1b819bf265fa6876bd",
+      "gasUsed": 48910,
+      "blockNumber": 26,
+      "blockTimestamp": 1781441416,
+      "blockTime": "2026-06-14T12:50:16.000Z",
+      "status": "SUCCESS",
+      "notes": "University 2 → 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"
+    },
+    {
+      "step": 1,
+      "pdfRequirement": "PDF §1 — Register employer",
+      "action": "GRANT_EMPLOYER_ROLE",
+      "actor": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "actorRole": "admin",
+      "txHash": "0x5c3166be18b769fccc99ea1952c06dec029bfc5590301c079c8775f534da880e",
+      "gasUsed": 48868,
+      "blockNumber": 27,
+      "blockTimestamp": 1781441417,
+      "blockTime": "2026-06-14T12:50:17.000Z",
+      "status": "SUCCESS",
+      "notes": "Employer 1 → 0x90F79bf6EB2c4f870365E785982E1f101E93b906"
+    },
+    {
+      "step": 1,
+      "pdfRequirement": "PDF §1 — Register employer",
+      "action": "GRANT_EMPLOYER_ROLE",
+      "actor": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "actorRole": "admin",
+      "txHash": "0x646dfa6b6253d5cdaaa559be363300492f33d914ac31768f76c250813bf8578e",
+      "gasUsed": 48868,
+      "blockNumber": 28,
+      "blockTimestamp": 1781441418,
+      "blockTime": "2026-06-14T12:50:18.000Z",
+      "status": "SUCCESS",
+      "notes": "Employer 2 → 0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65"
+    },
+    {
+      "step": 2,
+      "pdfRequirement": "PDF §2 — Issue digital degree",
+      "action": "ISSUE_DEGREE",
+      "actor": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "actorRole": "university",
+      "txHash": "0x1c4f801bcc94db1db11c2daaf75457bbd21a74d6935ed6782078de7bbfce509c",
+      "gasUsed": 212943,
+      "blockNumber": 29,
+      "blockTimestamp": 1781441419,
+      "blockTime": "2026-06-14T12:50:19.000Z",
+      "status": "SUCCESS",
+      "notes": "University 1 → Ali Hassan (BSCS) | hash: 0xa2d7f7dd753604c3..."
+    },
+    {
+      "step": 2,
+      "pdfRequirement": "PDF §2 — Issue digital degree",
+      "action": "ISSUE_DEGREE",
+      "actor": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "actorRole": "university",
+      "txHash": "0x0515a06e64a6d98706ab7612a51011f001b4c4952132b6a4228efdd16a5e783d",
+      "gasUsed": 195819,
+      "blockNumber": 30,
+      "blockTimestamp": 1781441420,
+      "blockTime": "2026-06-14T12:50:20.000Z",
+      "status": "SUCCESS",
+      "notes": "University 1 → Sara Khan (BSCE) | hash: 0xebcffdf761d8d283..."
+    },
+    {
+      "step": 2,
+      "pdfRequirement": "PDF §2 — Issue digital degree",
+      "action": "ISSUE_DEGREE",
+      "actor": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "actorRole": "university",
+      "txHash": "0xbabb04919d34f973129dac4998a4ce73b122aae8da01f6083988e9ff60429f7e",
+      "gasUsed": 195855,
+      "blockNumber": 31,
+      "blockTimestamp": 1781441421,
+      "blockTime": "2026-06-14T12:50:21.000Z",
+      "status": "SUCCESS",
+      "notes": "University 1 → Umar Farooq (BSIT) | hash: 0xc3dae8f98e47651f..."
+    },
+    {
+      "step": 2,
+      "pdfRequirement": "PDF §2 — Issue digital degree",
+      "action": "ISSUE_DEGREE",
+      "actor": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+      "actorRole": "university",
+      "txHash": "0x54073738d9d78a2e9985b0141dcca3e36e6686341faa3ace3ac0a37ad584ab08",
+      "gasUsed": 195843,
+      "blockNumber": 32,
+      "blockTimestamp": 1781441422,
+      "blockTime": "2026-06-14T12:50:22.000Z",
+      "status": "SUCCESS",
+      "notes": "University 2 → Ali Hassan (BSCS) | hash: 0x73a345c466719679..."
+    },
+    {
+      "step": 2,
+      "pdfRequirement": "PDF §2 — Issue digital degree",
+      "action": "ISSUE_DEGREE",
+      "actor": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+      "actorRole": "university",
+      "txHash": "0x9ec24a3b58f57a79fc8da0addcbfbaed57863fa8e32ca66d11bad53117485cec",
+      "gasUsed": 195819,
+      "blockNumber": 33,
+      "blockTimestamp": 1781441423,
+      "blockTime": "2026-06-14T12:50:23.000Z",
+      "status": "SUCCESS",
+      "notes": "University 2 → Sara Khan (BSCE) | hash: 0x67662333248a75fa..."
+    },
+    {
+      "step": 3,
+      "pdfRequirement": "PDF §3 — Verify degree authenticity",
+      "action": "VERIFY_DEGREE",
+      "actor": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+      "actorRole": "employer",
+      "txHash": "0x5c9e61d98dcae46402b3838bc32fc4663f73ba2ba8ddae66651fa0d4c4df8a58",
+      "gasUsed": 29001,
+      "blockNumber": 34,
+      "blockTimestamp": 1781441424,
+      "blockTime": "2026-06-14T12:50:24.000Z",
+      "status": "SUCCESS",
+      "notes": "Ali Hassan (BSCS) | exists=true valid=true revoked=false"
+    },
+    {
+      "step": 3,
+      "pdfRequirement": "PDF §3 — Verify degree authenticity",
+      "action": "VERIFY_DEGREE",
+      "actor": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+      "actorRole": "employer",
+      "txHash": "0x396a63c15aad7c6cd5229d5298cb88566d5a1b60c14cac7ee712eb0890c3a67d",
+      "gasUsed": 28989,
+      "blockNumber": 35,
+      "blockTimestamp": 1781441425,
+      "blockTime": "2026-06-14T12:50:25.000Z",
+      "status": "SUCCESS",
+      "notes": "Sara Khan (BSCE) | exists=true valid=true revoked=false"
+    },
+    {
+      "step": 3,
+      "pdfRequirement": "PDF §3 — Verify degree authenticity",
+      "action": "VERIFY_DEGREE",
+      "actor": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+      "actorRole": "employer",
+      "txHash": "0x549885c9408185ed23a4b5c2e41b5be69f5d371e2f24f2e5086a2bec9a1cf90a",
+      "gasUsed": 29001,
+      "blockNumber": 36,
+      "blockTimestamp": 1781441426,
+      "blockTime": "2026-06-14T12:50:26.000Z",
+      "status": "SUCCESS",
+      "notes": "Umar Farooq (BSIT) | exists=true valid=true revoked=false"
+    },
+    {
+      "step": 4,
+      "pdfRequirement": "PDF §3 — Fake degree attempt / fraud detection",
+      "action": "FAKE_VERIFY_ATTEMPT",
+      "actor": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+      "actorRole": "employer",
+      "txHash": "0xe71ff0a3b22993cdbd998ac39409ccebb78026f552fa25420cce53811200a2ce",
+      "gasUsed": 28993,
+      "blockNumber": 37,
+      "blockTimestamp": 1781441427,
+      "blockTime": "2026-06-14T12:50:27.000Z",
+      "status": "FRAUD_DETECTED",
+      "notes": "exists=false valid=false | FRAUD CONFIRMED — degree not on blockchain"
+    }
+  ],
+  "summary": {
+    "universitiesRegistered": 2,
+    "employersRegistered": 2,
+    "studentsDefinedOffChain": 3,
+    "degreesIssued": 5,
+    "verificationsRun": 3,
+    "verificationsPassed": 3,
+    "fraudAttemptsDetected": 1,
+    "totalTransactions": 13,
+    "totalGasUsed": 1307831,
+    "avgGasPerTx": 100602
+  }
+}

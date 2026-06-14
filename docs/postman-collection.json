@@ -1,0 +1,320 @@
+{
+  "info": {
+    "name": "Degree Attestation — CCP Backend API",
+    "description": "Iqra University BSCS/CB Blockchain Security CCP.\nAll endpoints exercised in order. Set {{BASE_URL}} = http://localhost:4000/api.\nRun initAdmin.js before using this collection.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "BASE_URL",       "value": "http://localhost:4000/api" },
+    { "key": "ADMIN_TOKEN",    "value": "" },
+    { "key": "UNI_TOKEN",      "value": "" },
+    { "key": "EMP_TOKEN",      "value": "" },
+    { "key": "DEGREE_HASH",    "value": "" },
+    { "key": "UNI_WALLET",     "value": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8" },
+    { "key": "EMP_WALLET",     "value": "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc" },
+    { "key": "UNI_PK",         "value": "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d" },
+    { "key": "EMP_PK",         "value": "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{BASE_URL}}/health" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST /auth/login (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('ADMIN_TOKEN', pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"email\": \"admin@iqra.edu.pk\", \"password\": \"Admin@1234\" }"
+            },
+            "url": { "raw": "{{BASE_URL}}/auth/login" }
+          }
+        },
+        {
+          "name": "POST /auth/login (university)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('UNI_TOKEN', pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"email\": \"university@iqra.edu.pk\", \"password\": \"University@1234\" }"
+            },
+            "url": { "raw": "{{BASE_URL}}/auth/login" }
+          }
+        },
+        {
+          "name": "POST /auth/login (employer)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('EMP_TOKEN', pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"email\": \"employer@techcorp.com\", \"password\": \"Employer@1234\" }"
+            },
+            "url": { "raw": "{{BASE_URL}}/auth/login" }
+          }
+        },
+        {
+          "name": "GET /auth/me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/auth/me" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "POST /admin/grant-university",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"walletAddress\": \"{{UNI_WALLET}}\" }"
+            },
+            "url": { "raw": "{{BASE_URL}}/admin/grant-university" }
+          }
+        },
+        {
+          "name": "POST /admin/grant-employer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"walletAddress\": \"{{EMP_WALLET}}\" }"
+            },
+            "url": { "raw": "{{BASE_URL}}/admin/grant-employer" }
+          }
+        },
+        {
+          "name": "GET /admin/users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/admin/users" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Degrees",
+      "item": [
+        {
+          "name": "POST /degrees/issue",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var body = pm.response.json();",
+                  "if (body.degree && body.degree.degreeHash) {",
+                  "  pm.collectionVariables.set('DEGREE_HASH', body.degree.degreeHash);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{UNI_TOKEN}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentName\": \"Ali Hassan\",\n  \"studentId\": \"IU-2024-001\",\n  \"program\": \"BSCS\",\n  \"graduationDate\": 1717200000,\n  \"nationalId\": \"42101-1234567-1\",\n  \"dob\": \"1999-01-15\",\n  \"gpa\": \"3.8\",\n  \"privateKey\": \"{{UNI_PK}}\"\n}"
+            },
+            "url": { "raw": "{{BASE_URL}}/degrees/issue" }
+          }
+        },
+        {
+          "name": "POST /degrees/issue — VALIDATION FAIL (missing fields)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{UNI_TOKEN}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"studentName\": \"Ali Hassan\" }"
+            },
+            "url": { "raw": "{{BASE_URL}}/degrees/issue" }
+          }
+        },
+        {
+          "name": "GET /degrees (list)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{UNI_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/degrees" }
+          }
+        },
+        {
+          "name": "GET /degrees/:hash",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{UNI_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/degrees/{{DEGREE_HASH}}" }
+          }
+        },
+        {
+          "name": "POST /degrees/:hash/revoke",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{UNI_TOKEN}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"reason\": \"Student withdrawal\", \"privateKey\": \"{{UNI_PK}}\" }"
+            },
+            "url": { "raw": "{{BASE_URL}}/degrees/{{DEGREE_HASH}}/revoke" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Verify",
+      "item": [
+        {
+          "name": "POST /degrees/verify — VALID degree",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{EMP_TOKEN}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"degreeHash\": \"{{DEGREE_HASH}}\", \"privateKey\": \"{{EMP_PK}}\" }"
+            },
+            "url": { "raw": "{{BASE_URL}}/degrees/verify" }
+          }
+        },
+        {
+          "name": "POST /degrees/verify — INVALID (fake hash / fraud)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{EMP_TOKEN}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"degreeHash\": \"0x984d6766425f5c8fd34dbd5c08c9581c3ba6e4648123e18095c8eb79e0385ccb\", \"privateKey\": \"{{EMP_PK}}\" }"
+            },
+            "url": { "raw": "{{BASE_URL}}/degrees/verify" }
+          }
+        },
+        {
+          "name": "POST /degrees/verify — VALIDATION FAIL (bad hash format)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{EMP_TOKEN}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"degreeHash\": \"not-a-hash\", \"privateKey\": \"{{EMP_PK}}\" }"
+            },
+            "url": { "raw": "{{BASE_URL}}/degrees/verify" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "GET /reports/summary",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/reports/summary" }
+          }
+        },
+        {
+          "name": "GET /reports/audit",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/reports/audit?page=1&limit=50" }
+          }
+        },
+        {
+          "name": "GET /reports/audit?type=FRAUD_ATTEMPT",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/reports/audit?type=FRAUD_ATTEMPT" }
+          }
+        },
+        {
+          "name": "GET /reports/degrees-over-time",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/reports/degrees-over-time" }
+          }
+        }
+      ]
+    }
+  ]
+}

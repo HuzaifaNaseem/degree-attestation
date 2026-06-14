@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────────────────────
+   Theme tokens — values are "R G B" channel triplets so Tailwind
+   opacity modifiers (bg-accent/10) work. Switched via data-theme
+   on <html>. Default is dark.
+   ───────────────────────────────────────────────────────────── */
+
+/* DARK (default) — charcoal + gold */
+:root,
+[data-theme="dark"] {
+  --bg:           11 13 20;     /* #0B0D14 */
+  --sidebar:      15 17 23;     /* #0F1117 */
+  --surface:      19 22 31;     /* #13161F */
+  --elevated:     26 30 42;     /* #1A1E2A */
+  --line:         37 42 58;     /* #252A3A */
+  --line-soft:    30 33 48;     /* #1E2130 */
+  --fg:           255 255 255;  /* white */
+  --muted:        139 144 167;  /* #8B90A7 */
+  --faint:        74 80 112;    /* #4A5070 */
+  --accent:       201 168 76;   /* #C9A84C gold */
+  --accent-soft:  245 215 139;  /* #F5D78B */
+  --accent-fg:    15 17 23;     /* dark text on gold */
+}
+
+/* LIGHT — clean white + gold */
+[data-theme="light"] {
+  --bg:           247 248 250;  /* #F7F8FA */
+  --sidebar:      255 255 255;  /* white */
+  --surface:      255 255 255;  /* white */
+  --elevated:     243 244 246;  /* #F3F4F6 */
+  --line:         226 229 234;  /* #E2E5EA */
+  --line-soft:    235 237 240;  /* #EBEDF0 */
+  --fg:           26 30 42;      /* #1A1E2A near-black */
+  --muted:        107 114 128;  /* #6B7280 */
+  --faint:        156 163 175;  /* #9CA3AF */
+  --accent:       176 134 46;   /* #B0862E darker gold for contrast */
+  --accent-soft:  201 168 76;   /* #C9A84C */
+  --accent-fg:    255 255 255;  /* white text on gold */
+}
+
+/* LIGHT BROWN — warm sepia + bronze */
+[data-theme="brown"] {
+  --bg:           244 237 226;  /* #F4EDE2 warm cream */
+  --sidebar:      239 228 211;  /* #EFE4D3 */
+  --surface:      251 246 238;  /* #FBF6EE */
+  --elevated:     240 230 215;  /* #F0E6D7 */
+  --line:         224 210 188;  /* #E0D2BC */
+  --line-soft:    232 221 202;  /* #E8DDCA */
+  --fg:           58 46 31;      /* #3A2E1F dark brown */
+  --muted:        138 122 95;   /* #8A7A5F */
+  --faint:        168 150 120;  /* #A89678 */
+  --accent:       154 107 46;   /* #9A6B2E bronze */
+  --accent-soft:  201 168 76;   /* #C9A84C */
+  --accent-fg:    255 255 255;  /* white text on bronze */
+}
+
+@layer base {
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background-color: rgb(var(--bg));
+    color: rgb(var(--fg));
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Themed scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: rgb(var(--sidebar)); }
+  ::-webkit-scrollbar-thumb { background: rgb(var(--line)); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgb(var(--accent) / 0.5); }
+}
+
+/* ── Print: isolate the certificate so "Save as PDF" yields a clean page ── */
+@media print {
+  body { background: #fff !important; }
+  body * { visibility: hidden !important; }
+  #certificate-print, #certificate-print * { visibility: visible !important; }
+  #certificate-print {
+    position: absolute;
+    inset: 0;
+    margin: 0 auto;
+    width: 100%;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+  .no-print { display: none !important; }
+  @page { size: A4 landscape; margin: 10mm; }
+}

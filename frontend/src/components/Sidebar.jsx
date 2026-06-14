@@ -1,0 +1,172 @@
+/**
+ * Sidebar — dark charcoal + gold accent navigation.
+ * Role-based nav links, user card, sign out.
+ */
+import { NavLink, useNavigate } from "react-router-dom";
+import ChainStatus from "./ChainStatus";
+import ThemeToggle from "./ThemeToggle";
+
+function getUser() {
+  try { return JSON.parse(localStorage.getItem("user")); } catch { return null; }
+}
+
+/* ── SVG icon set ─────────────────────────────────────────── */
+const Icons = {
+  Dashboard: () => (
+    <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+    </svg>
+  ),
+  Issue: () => (
+    <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+    </svg>
+  ),
+  Verify: () => (
+    <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  ),
+  Logs: () => (
+    <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+    </svg>
+  ),
+  Reports: () => (
+    <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg>
+  ),
+  Users: () => (
+    <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+    </svg>
+  ),
+  Logout: () => (
+    <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+    </svg>
+  ),
+};
+
+/* ── Role → nav links ─────────────────────────────────────── */
+const ROLE_LINKS = {
+  admin: [
+    { to: "/dashboard", label: "Dashboard",  Icon: Icons.Dashboard },
+    { to: "/logs",      label: "Audit Logs", Icon: Icons.Logs      },
+    { to: "/reports",   label: "Reports",    Icon: Icons.Reports   },
+    { to: "/admin",     label: "Users",      Icon: Icons.Users     },
+  ],
+  university: [
+    { to: "/dashboard", label: "Dashboard",    Icon: Icons.Dashboard },
+    { to: "/issue",     label: "Issue Degree", Icon: Icons.Issue     },
+    { to: "/logs",      label: "TX Logs",      Icon: Icons.Logs      },
+  ],
+  employer: [
+    { to: "/dashboard", label: "Dashboard",     Icon: Icons.Dashboard },
+    { to: "/verify",    label: "Verify Degree", Icon: Icons.Verify    },
+  ],
+};
+
+const ROLE_BADGE = {
+  admin:      "bg-accent/15 text-accent border border-accent/30",
+  university: "bg-violet-500/15 text-violet-500 border border-violet-500/30",
+  employer:   "bg-emerald-500/15 text-emerald-500 border border-emerald-500/30",
+};
+
+export default function Sidebar() {
+  const navigate  = useNavigate();
+  const user      = getUser();
+  const links     = ROLE_LINKS[user?.role] ?? [];
+
+  function signOut() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login", { replace: true });
+  }
+
+  const initials = user?.name
+    ? user.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()
+    : "?";
+
+  return (
+    <aside className="w-64 shrink-0 flex flex-col h-screen bg-sidebar border-r border-line-soft">
+
+      {/* ── Logo ── */}
+      <div className="px-5 py-5 border-b border-line-soft">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center shadow-lg shadow-accent/30 shrink-0">
+            <svg className="w-5 h-5 text-accent-fg" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+          </div>
+          <div className="min-w-0">
+            <p className="text-fg font-bold text-sm leading-none">DegreeAttest</p>
+            <p className="text-faint text-xs mt-0.5">Iqra University</p>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Role badge ── */}
+      <div className="px-4 pt-4 pb-2">
+        <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-widest ${ROLE_BADGE[user?.role] ?? ROLE_BADGE.admin}`}>
+          {user?.role ?? "—"}
+        </span>
+      </div>
+
+      {/* ── Nav links ── */}
+      <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
+        {links.map(({ to, label, Icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                isActive
+                  ? "bg-accent/10 text-accent border-l-2 border-accent pl-[10px]"
+                  : "text-muted hover:text-fg hover:bg-fg/5 border-l-2 border-transparent"
+              }`
+            }
+          >
+            <Icon />
+            {label}
+          </NavLink>
+        ))}
+      </nav>
+
+      {/* ── Theme switcher ── */}
+      <div className="px-3 pt-3">
+        <ThemeToggle />
+      </div>
+
+      {/* ── Live chain status ── */}
+      <div className="px-3 pt-2">
+        <ChainStatus variant="badge" />
+      </div>
+
+      {/* ── User card + sign out ── */}
+      <div className="p-3 border-t border-line-soft mt-3 space-y-1.5">
+        <div className="flex items-center gap-3 bg-elevated rounded-xl px-3 py-2.5 border border-line">
+          <div className="w-8 h-8 rounded-full bg-accent/20 text-accent text-xs font-bold flex items-center justify-center shrink-0 border border-accent/30">
+            {initials}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-fg text-xs font-semibold truncate">{user?.name ?? "User"}</p>
+            <p className="text-faint text-xs font-mono truncate">
+              {user?.walletAddress ? `${user.walletAddress.slice(0, 10)}…` : "—"}
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={signOut}
+          data-testid="btn-signout"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted hover:text-red-500 hover:bg-red-500/10 transition-all"
+        >
+          <Icons.Logout />
+          Sign Out
+        </button>
+      </div>
+    </aside>
+  );
+}
