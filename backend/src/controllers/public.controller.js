@@ -11,6 +11,7 @@
  *   POST /api/public/verify        — instant read-only credential check
  */
 const Degree          = require("../models/Degree");
+const AuditLog        = require("../models/AuditLog");
 const contractService = require("../services/contractService");
 const { writeEntry }  = require("../services/auditLogger");
 
@@ -81,4 +82,36 @@ const publicVerify = async (req, res, next) => {
   }
 };
 
-module.exports = { chainStatus, publicVerify };
+// GET /api/public/stats — aggregate counts + recent on-chain activity feed.
+// Read-only and PII-free (only event type, short actor, tx/degree hash, time).
+const publicStats = async (_req, res, next) => {
+  try {
+    let totalOnChain = 0;
+    try { totalOnChain = await contractService.getTotalIssued(); } catch { /* chain offline → 0 */ }
+
+    const [totalIssued, totalVerifications, totalRevoked, totalFraud, recent] = await Promise.all([
+      Degree.countDocuments(),
+      AuditLog.countDocuments({ eventType: "DEGREE_VERIFIED" }),
+      Degree.countDocuments({ isRevoked: true }),
+      AuditLog.countDocuments({ eventType: "FRAUD_ATTEMPT" }),
+      AuditLog.find({})
+        .sort({ timestamp: -1 })
+        .limit(15)
+        .select("eventType actor txHash degreeHash blockNumber timestamp isFraud -_id"),
+    ]);
+
+    res.json({
+      totalOnChain,
+      totalIssued,
+      totalVerifications,
+      totalRevoked,
+      totalFraud,
+      recent,
+      generatedAt: new Date().toISOString(),
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { chainStatus, publicVerify, publicStats };

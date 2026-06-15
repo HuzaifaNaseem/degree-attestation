@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Sidebar         from "./components/Sidebar";
 import Landing         from "./pages/Landing";
 import PublicVerify    from "./pages/PublicVerify";
+import Explorer        from "./pages/Explorer";
 import LoginPage       from "./pages/LoginPage";
 import Dashboard       from "./pages/Dashboard";
 import IssueDegree     from "./pages/IssueDegree";
@@ -74,6 +75,7 @@ export default function App() {
       {/* ── Public ── */}
       <Route path="/"              element={<Landing />} />
       <Route path="/verify-degree" element={<PublicVerify />} />
+      <Route path="/explorer"      element={<Explorer />} />
       <Route path="/login"         element={<LoginPage />} />
 
       {/* ── All authenticated roles ── */}

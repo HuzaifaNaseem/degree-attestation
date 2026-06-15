@@ -11,6 +11,7 @@ import Logo from "./Logo";
 const LINKS = [
   { href: "#features", label: "Features" },
   { href: "#how",      label: "How it works" },
+  { href: "/explorer", label: "Explorer" },
   { href: "#verify",   label: "Verify" },
 ];
 
@@ -38,11 +39,17 @@ export default function PublicNav() {
 
         {/* Center links */}
         <nav className="hidden md:flex items-center gap-8">
-          {LINKS.map(({ href, label }) => (
-            <a key={href} href={href} className="text-sm text-muted hover:text-fg transition-colors">
-              {label}
-            </a>
-          ))}
+          {LINKS.map(({ href, label }) =>
+            href.startsWith("/") ? (
+              <Link key={href} to={href} className="text-sm text-muted hover:text-fg transition-colors">
+                {label}
+              </Link>
+            ) : (
+              <a key={href} href={href} className="text-sm text-muted hover:text-fg transition-colors">
+                {label}
+              </a>
+            )
+          )}
         </nav>
 
         {/* Actions */}
