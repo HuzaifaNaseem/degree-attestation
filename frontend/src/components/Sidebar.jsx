@@ -59,9 +59,10 @@ const ROLE_LINKS = {
     { to: "/admin",     label: "Users",      Icon: Icons.Users     },
   ],
   university: [
-    { to: "/dashboard", label: "Dashboard",    Icon: Icons.Dashboard },
-    { to: "/issue",     label: "Issue Degree", Icon: Icons.Issue     },
-    { to: "/logs",      label: "TX Logs",      Icon: Icons.Logs      },
+    { to: "/dashboard",  label: "Dashboard",    Icon: Icons.Dashboard },
+    { to: "/issue",      label: "Issue Degree", Icon: Icons.Issue     },
+    { to: "/bulk-issue", label: "Bulk Issue",   Icon: Icons.Users     },
+    { to: "/logs",       label: "TX Logs",      Icon: Icons.Logs      },
   ],
   employer: [
     { to: "/dashboard", label: "Dashboard",     Icon: Icons.Dashboard },

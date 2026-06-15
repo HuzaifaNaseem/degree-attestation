@@ -23,6 +23,7 @@ import Explorer        from "./pages/Explorer";
 import LoginPage       from "./pages/LoginPage";
 import Dashboard       from "./pages/Dashboard";
 import IssueDegree     from "./pages/IssueDegree";
+import BulkIssue       from "./pages/BulkIssue";
 import VerifyDegree    from "./pages/VerifyDegree";
 import TransactionLogs from "./pages/TransactionLogs";
 import Reports         from "./pages/Reports";
@@ -89,6 +90,11 @@ export default function App() {
       <Route path="/issue" element={
         <PrivateRoute roles={["university"]}>
           <AppShell><IssueDegree /></AppShell>
+        </PrivateRoute>
+      } />
+      <Route path="/bulk-issue" element={
+        <PrivateRoute roles={["university"]}>
+          <AppShell><BulkIssue /></AppShell>
         </PrivateRoute>
       } />
 
