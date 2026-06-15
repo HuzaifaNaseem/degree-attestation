@@ -47,6 +47,7 @@ const degreeRoutes = require("./routes/degree.routes");   // includes /issue and
 const adminRoutes  = require("./routes/admin.routes");
 const reportRoutes = require("./routes/report.routes");
 const publicRoutes = require("./routes/public.routes");   // unauthenticated: chain-status + read-only verify
+const requestRoutes = require("./routes/request.routes"); // attestation request/approval workflow
 
 const app  = express();
 const PORT = process.env.PORT || 4000;
@@ -67,6 +68,7 @@ app.use(morgan("dev"));
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use("/api/public",  publicRoutes);   // unauthenticated — must precede auth-gated routes
+app.use("/api/requests", requestRoutes); // attestation request/approval workflow
 app.use("/api/auth",    authRoutes);
 app.use("/api/degrees", degreeRoutes);   // POST /issue and POST /verify live here
 app.use("/api/admin",   adminRoutes);

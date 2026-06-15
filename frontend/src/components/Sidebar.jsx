@@ -54,12 +54,14 @@ const Icons = {
 const ROLE_LINKS = {
   admin: [
     { to: "/dashboard", label: "Dashboard",  Icon: Icons.Dashboard },
+    { to: "/requests",  label: "Requests",   Icon: Icons.Verify    },
     { to: "/logs",      label: "Audit Logs", Icon: Icons.Logs      },
     { to: "/reports",   label: "Reports",    Icon: Icons.Reports   },
     { to: "/admin",     label: "Users",      Icon: Icons.Users     },
   ],
   university: [
     { to: "/dashboard",  label: "Dashboard",    Icon: Icons.Dashboard },
+    { to: "/requests",   label: "Requests",     Icon: Icons.Verify    },
     { to: "/issue",      label: "Issue Degree", Icon: Icons.Issue     },
     { to: "/bulk-issue", label: "Bulk Issue",   Icon: Icons.Users     },
     { to: "/logs",       label: "TX Logs",      Icon: Icons.Logs      },

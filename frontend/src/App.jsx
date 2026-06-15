@@ -20,6 +20,8 @@ import Sidebar         from "./components/Sidebar";
 import Landing         from "./pages/Landing";
 import PublicVerify    from "./pages/PublicVerify";
 import Explorer        from "./pages/Explorer";
+import Apply           from "./pages/Apply";
+import Requests        from "./pages/Requests";
 import LoginPage       from "./pages/LoginPage";
 import Dashboard       from "./pages/Dashboard";
 import IssueDegree     from "./pages/IssueDegree";
@@ -77,6 +79,7 @@ export default function App() {
       <Route path="/"              element={<Landing />} />
       <Route path="/verify-degree" element={<PublicVerify />} />
       <Route path="/explorer"      element={<Explorer />} />
+      <Route path="/apply"         element={<Apply />} />
       <Route path="/login"         element={<LoginPage />} />
 
       {/* ── All authenticated roles ── */}
@@ -95,6 +98,11 @@ export default function App() {
       <Route path="/bulk-issue" element={
         <PrivateRoute roles={["university"]}>
           <AppShell><BulkIssue /></AppShell>
+        </PrivateRoute>
+      } />
+      <Route path="/requests" element={
+        <PrivateRoute roles={["university", "admin"]}>
+          <AppShell><Requests /></AppShell>
         </PrivateRoute>
       } />
 
