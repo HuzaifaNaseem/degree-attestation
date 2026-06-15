@@ -70,12 +70,16 @@ const ROLE_LINKS = {
     { to: "/dashboard", label: "Dashboard",     Icon: Icons.Dashboard },
     { to: "/verify",    label: "Verify Degree", Icon: Icons.Verify    },
   ],
+  student: [
+    { to: "/my-credentials", label: "My Credentials", Icon: Icons.Issue },
+  ],
 };
 
 const ROLE_BADGE = {
   admin:      "bg-accent/15 text-accent border border-accent/30",
   university: "bg-violet-500/15 text-violet-500 border border-violet-500/30",
   employer:   "bg-emerald-500/15 text-emerald-500 border border-emerald-500/30",
+  student:    "bg-cyan-500/15 text-cyan-500 border border-cyan-500/30",
 };
 
 export default function Sidebar() {

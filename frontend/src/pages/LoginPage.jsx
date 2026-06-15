@@ -31,7 +31,7 @@ export default function LoginPage() {
       const { data } = await api.post("/auth/login", form);
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
-      navigate("/dashboard", { replace: true });
+      navigate(data.user.role === "student" ? "/my-credentials" : "/dashboard", { replace: true });
     } catch (err) {
       setError(err.response?.data?.error || "Invalid credentials — please try again.");
     } finally {
@@ -129,9 +129,12 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Public verify link + trust line */}
+        {/* Student signup + public verify + trust line */}
         <div className="text-center mt-6 space-y-2">
-          <Link to="/verify-degree" className="text-sm text-accent hover:underline">
+          <p className="text-sm text-muted">
+            Are you a graduate? <Link to="/student-signup" className="text-accent hover:underline font-semibold">Create a student account</Link>
+          </p>
+          <Link to="/verify-degree" className="text-sm text-accent hover:underline block">
             Verify a credential without signing in →
           </Link>
           <p className="text-xs text-faint">Secured by Ethereum · AES-256 encryption · BSCS Capstone</p>

@@ -23,6 +23,8 @@ import Explorer        from "./pages/Explorer";
 import Apply           from "./pages/Apply";
 import Requests        from "./pages/Requests";
 import StudentPortal   from "./pages/StudentPortal";
+import StudentRegister from "./pages/StudentRegister";
+import MyCredentials   from "./pages/MyCredentials";
 import LoginPage       from "./pages/LoginPage";
 import Dashboard       from "./pages/Dashboard";
 import IssueDegree     from "./pages/IssueDegree";
@@ -39,7 +41,10 @@ function getUser() {
 function PrivateRoute({ children, roles }) {
   const user = getUser();
   if (!user) return <Navigate to="/login" replace />;
-  if (roles && !roles.includes(user.role)) return <Navigate to="/dashboard" replace />;
+  if (roles && !roles.includes(user.role)) {
+    // students have their own home; everyone else uses the dashboard
+    return <Navigate to={user.role === "student" ? "/my-credentials" : "/dashboard"} replace />;
+  }
   return children;
 }
 
@@ -81,8 +86,9 @@ export default function App() {
       <Route path="/verify-degree" element={<PublicVerify />} />
       <Route path="/explorer"      element={<Explorer />} />
       <Route path="/apply"         element={<Apply />} />
-      <Route path="/student"       element={<StudentPortal />} />
-      <Route path="/login"         element={<LoginPage />} />
+      <Route path="/student"        element={<StudentPortal />} />
+      <Route path="/student-signup" element={<StudentRegister />} />
+      <Route path="/login"          element={<LoginPage />} />
 
       {/* ── All authenticated roles ── */}
       <Route path="/dashboard" element={
@@ -105,6 +111,11 @@ export default function App() {
       <Route path="/requests" element={
         <PrivateRoute roles={["university", "admin"]}>
           <AppShell><Requests /></AppShell>
+        </PrivateRoute>
+      } />
+      <Route path="/my-credentials" element={
+        <PrivateRoute roles={["student"]}>
+          <AppShell><MyCredentials /></AppShell>
         </PrivateRoute>
       } />
 

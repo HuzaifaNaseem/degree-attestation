@@ -36,6 +36,32 @@ router.post("/register", requireAuth(["admin"]), async (req, res, next) => {
   }
 });
 
+// POST /api/auth/student-register (public — students self-register)
+router.post("/student-register", async (req, res, next) => {
+  try {
+    const { name, email, password, studentId } = req.body;
+    if (!name || !email || !password || !studentId) {
+      return res.status(400).json({ error: "name, email, password, studentId are required" });
+    }
+    if (await User.findOne({ email: email.toLowerCase() })) {
+      return res.status(409).json({ error: "An account with this email already exists" });
+    }
+    const passwordHash = await User.hashPassword(password);
+    const user = await User.create({
+      name,
+      email: email.toLowerCase(),
+      passwordHash,
+      role: "student",
+      studentId: studentId.trim(),
+      // sentinel wallet — students have no on-chain identity
+      walletAddress: `student:${email.toLowerCase()}`,
+    });
+    res.status(201).json({ user });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // POST /api/auth/login
 router.post("/login", async (req, res, next) => {
   try {
@@ -58,7 +84,7 @@ router.post("/login", async (req, res, next) => {
     }
 
     const token = jwt.sign(
-      { userId: user._id, role: user.role, walletAddress: user.walletAddress, email: user.email },
+      { userId: user._id, role: user.role, walletAddress: user.walletAddress, email: user.email, studentId: user.studentId },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || "8h" }
     );
@@ -78,11 +104,26 @@ router.post("/login", async (req, res, next) => {
 });
 
 // GET /api/auth/me
-router.get("/me", requireAuth(["admin", "university", "employer"]), async (req, res, next) => {
+router.get("/me", requireAuth(["admin", "university", "employer", "student"]), async (req, res, next) => {
   try {
     const user = await User.findById(req.user.userId);
     if (!user) return res.status(404).json({ error: "User not found" });
     res.json({ user });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/auth/my-credentials — a student's own on-chain credentials
+router.get("/my-credentials", requireAuth(["student"]), async (req, res, next) => {
+  try {
+    const Degree = require("../models/Degree");
+    const studentId = req.user.studentId;
+    if (!studentId) return res.json({ studentId: null, degrees: [] });
+    const degrees = await Degree.find({ studentId })
+      .sort({ createdAt: -1 })
+      .select("degreeHash studentName studentId program graduationDate isRevoked txHash universityWallet createdAt");
+    res.json({ studentId, count: degrees.length, degrees });
   } catch (err) {
     next(err);
   }

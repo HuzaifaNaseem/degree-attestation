@@ -5,7 +5,7 @@
  * Employer: verify prompt
  */
 import { useEffect, useState } from "react";
-import { Link }               from "react-router-dom";
+import { Link, Navigate }     from "react-router-dom";
 import api        from "../api/axiosClient";
 import StatCard   from "../components/ui/StatCard";
 import Card       from "../components/ui/Card";
@@ -267,6 +267,7 @@ function EmployerDashboard() {
 // ── Root ───────────────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const user = getUser();
+  if (user?.role === "student") return <Navigate to="/my-credentials" replace />;
   const subtitle = {
     admin:      "System Administrator",
     university: "University Portal · Iqra University",
