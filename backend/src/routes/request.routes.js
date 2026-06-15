@@ -14,6 +14,8 @@ const router = express.Router();
 
 router.post("/",            ctrl.submitRequest);                              // public
 router.get("/",             requireAuth(["university", "admin"]), ctrl.listRequests);
+router.get("/:id",          requireAuth(["university", "admin"]), ctrl.getRequest);
+router.post("/:id/analyze", requireAuth(["university", "admin"]), ctrl.analyzeRequest);
 router.post("/:id/approve", requireAuth(["university", "admin"]), ctrl.approveRequest);
 router.post("/:id/reject",  requireAuth(["university", "admin"]), ctrl.rejectRequest);
 

@@ -1,7 +1,9 @@
 /**
- * Apply — public attestation request form.
- * Applicants submit a request → it enters the institution's review queue.
- * POST /api/requests (public). Our own layout (centered card on aurora bg).
+ * Apply — public attestation application.
+ * Applicants submit their details AND upload supporting documents (CNIC, payment
+ * proof, matric & intermediate marksheets). Each document is compressed and OCR'd
+ * in the browser (Tesseract.js) before it's sent, so the request carries both the
+ * image and the extracted text for the reviewer + AI agent. POST /api/requests (public).
  */
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -10,23 +12,67 @@ import api        from "../api/axiosClient";
 import PublicNav  from "../components/PublicNav";
 import Button     from "../components/ui/Button";
 import FormField, { inputCls } from "../components/ui/FormField";
+import { compressImage, ocrImage } from "../lib/docScan";
 
 const INITIAL = { applicantName: "", studentId: "", program: "", graduationDate: "", email: "", nationalId: "" };
 
+// The supporting documents we collect for attestation.
+const DOC_SLOTS = [
+  { type: "cnic",         label: "CNIC / National ID",      hint: "Front of your ID card" },
+  { type: "payment",      label: "Payment Proof",           hint: "Fee deposit slip / receipt" },
+  { type: "matric",       label: "Matriculation Marksheet", hint: "SSC / Grade 10 result" },
+  { type: "intermediate", label: "Intermediate Marksheet",  hint: "HSSC / Grade 12 result" },
+];
+
 export default function Apply() {
   const [form, setForm]       = useState(INITIAL);
+  const [docs, setDocs]       = useState({});   // { [type]: {label,dataUrl,mime,ocrText,status,progress} }
   const [done, setDone]       = useState(null);
   const [error, setError]     = useState("");
   const [loading, setLoading] = useState(false);
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
+  async function handleFile(slot, file) {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setDocs((d) => ({ ...d, [slot.type]: { label: slot.label, status: "error", error: "Please upload an image (JPG/PNG)." } }));
+      return;
+    }
+    // 1) compress for storage, show preview immediately
+    const { dataUrl, mime } = await compressImage(file);
+    setDocs((d) => ({ ...d, [slot.type]: { label: slot.label, dataUrl, mime, ocrText: "", status: "scanning", progress: 0 } }));
+    // 2) OCR in the browser
+    try {
+      const text = await ocrImage(dataUrl, (pct) =>
+        setDocs((d) => ({ ...d, [slot.type]: { ...d[slot.type], progress: pct } }))
+      );
+      setDocs((d) => ({ ...d, [slot.type]: { ...d[slot.type], ocrText: text, status: "done", progress: 100 } }));
+    } catch {
+      setDocs((d) => ({ ...d, [slot.type]: { ...d[slot.type], status: "done", ocrText: "", error: "Text scan failed — image still attached." } }));
+    }
+  }
+
+  function removeDoc(type) {
+    setDocs((d) => { const n = { ...d }; delete n[type]; return n; });
+  }
+
+  const scanning = Object.values(docs).some((d) => d.status === "scanning");
+  const attachedCount = Object.values(docs).filter((d) => d.dataUrl).length;
+
   async function submit(e) {
     e.preventDefault();
     setError(""); setLoading(true);
     try {
+      const documents = DOC_SLOTS
+        .filter((s) => docs[s.type]?.dataUrl)
+        .map((s) => ({
+          type: s.type, label: s.label,
+          mime: docs[s.type].mime, dataUrl: docs[s.type].dataUrl, ocrText: docs[s.type].ocrText || "",
+        }));
       const { data } = await api.post("/requests", {
         ...form,
         graduationDate: Math.floor(new Date(form.graduationDate).getTime() / 1000),
+        documents,
       });
       setDone(data.request);
     } catch (err) {
@@ -50,12 +96,13 @@ export default function Apply() {
               <div className="flex justify-between"><span className="text-muted">Reference</span><span className="font-mono text-accent">{done._id?.slice(-8).toUpperCase()}</span></div>
               <div className="flex justify-between"><span className="text-muted">Applicant</span><span className="font-semibold">{done.applicantName}</span></div>
               <div className="flex justify-between"><span className="text-muted">Program</span><span className="font-semibold">{done.program}</span></div>
+              <div className="flex justify-between"><span className="text-muted">Documents</span><span className="font-semibold">{attachedCount} attached</span></div>
               <div className="flex justify-between"><span className="text-muted">Attestation fee</span><span className="font-semibold">Rs. {done.fee?.toLocaleString()}</span></div>
               <div className="flex justify-between"><span className="text-muted">Status</span>
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500/15 text-amber-600 border border-amber-500/30">PENDING REVIEW</span></div>
             </div>
             <div className="flex gap-3 justify-center mt-6">
-              <button onClick={() => { setForm(INITIAL); setDone(null); }} className="text-sm font-semibold text-accent hover:underline">Submit another</button>
+              <button onClick={() => { setForm(INITIAL); setDocs({}); setDone(null); }} className="text-sm font-semibold text-accent hover:underline">Submit another</button>
               <Link to="/" className="text-sm text-muted hover:text-fg">← Home</Link>
             </div>
           </motion.div>
@@ -63,7 +110,7 @@ export default function Apply() {
           <>
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-8 text-center">
               <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Apply for Degree Attestation</h1>
-              <p className="text-muted mt-2">Submit your details to request a blockchain-verified credential. An institution reviewer will approve and issue it on-chain.</p>
+              <p className="text-muted mt-2">Fill in your details and upload your documents. They're scanned (OCR) in your browser, then reviewed before the credential is issued on-chain.</p>
             </motion.div>
 
             <motion.form
@@ -94,18 +141,71 @@ export default function Apply() {
                 <input id="nid" required value={form.nationalId} onChange={set("nationalId")} placeholder="42101-1234567-1" className={inputCls} />
               </FormField>
 
+              {/* ── Document uploads ── */}
+              <div className="pt-2">
+                <p className="text-sm font-semibold text-fg">Supporting Documents</p>
+                <p className="text-xs text-muted mt-0.5 mb-3">Upload clear photos/scans. Text is extracted in your browser (OCR) so the reviewer can verify them.</p>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {DOC_SLOTS.map((slot) => (
+                    <DocSlot key={slot.type} slot={slot} doc={docs[slot.type]} onFile={handleFile} onRemove={removeDoc} />
+                  ))}
+                </div>
+              </div>
+
               {error && <p className="text-sm text-red-500 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">{error}</p>}
 
               <div className="flex items-center justify-between pt-1">
-                <p className="text-xs text-muted">Fee is calculated on submission (Bachelor Rs.3,000 · Master/PhD Rs.6,000).</p>
-                <Button type="submit" loading={loading} data-testid="submit-apply">
-                  {loading ? "Submitting…" : "Submit Application →"}
+                <p className="text-xs text-muted">Fee: Bachelor Rs.3,000 · Master/PhD Rs.6,000.</p>
+                <Button type="submit" loading={loading} disabled={scanning} data-testid="submit-apply">
+                  {loading ? "Submitting…" : scanning ? "Scanning documents…" : "Submit Application →"}
                 </Button>
               </div>
             </motion.form>
           </>
         )}
       </main>
+    </div>
+  );
+}
+
+/* ── A single document upload tile ── */
+function DocSlot({ slot, doc, onFile, onRemove }) {
+  const inputId = `doc-${slot.type}`;
+  return (
+    <div className="rounded-xl border border-line bg-elevated p-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-fg truncate">{slot.label}</p>
+          <p className="text-[11px] text-faint">{slot.hint}</p>
+        </div>
+        {doc?.dataUrl && (
+          <button type="button" onClick={() => onRemove(slot.type)} className="text-[11px] text-red-500 hover:underline shrink-0">Remove</button>
+        )}
+      </div>
+
+      {doc?.dataUrl ? (
+        <div className="mt-2.5 flex gap-3">
+          <img src={doc.dataUrl} alt={slot.label} className="w-16 h-16 rounded-lg object-cover border border-line shrink-0" />
+          <div className="min-w-0 flex-1 text-xs">
+            {doc.status === "scanning" ? (
+              <p className="text-accent">Scanning… {doc.progress ?? 0}%</p>
+            ) : (
+              <>
+                <p className="text-emerald-500 font-semibold">✓ Scanned</p>
+                <p className="text-faint mt-0.5 line-clamp-2 break-words">{doc.ocrText ? doc.ocrText.slice(0, 90) + "…" : "No text detected"}</p>
+              </>
+            )}
+            {doc.error && <p className="text-amber-600 mt-0.5">{doc.error}</p>}
+          </div>
+        </div>
+      ) : (
+        <label htmlFor={inputId}
+          className="mt-2.5 flex items-center justify-center gap-2 h-16 rounded-lg border border-dashed border-line text-xs text-muted cursor-pointer hover:border-accent/40 hover:text-fg transition-colors">
+          {doc?.status === "error" ? <span className="text-red-500">{doc.error}</span> : <>＋ Choose image</>}
+        </label>
+      )}
+      <input id={inputId} type="file" accept="image/*" className="hidden"
+        onChange={(e) => onFile(slot, e.target.files?.[0])} />
     </div>
   );
 }

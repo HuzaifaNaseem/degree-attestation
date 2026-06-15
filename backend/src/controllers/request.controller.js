@@ -11,8 +11,9 @@
  */
 const Request         = require("../models/Request");
 const Degree          = require("../models/Degree");
-const { encrypt }     = require("../services/encryptionService");
+const { encrypt, decrypt } = require("../services/encryptionService");
 const contractService = require("../services/contractService");
+const { analyzeRequest: runAIReview } = require("../services/aiReviewService");
 const { writeEntry }  = require("../services/auditLogger");
 
 function feeFor(program = "") {
@@ -20,10 +21,27 @@ function feeFor(program = "") {
   return /mba|ms |master|m\.?s|m\.?phil|phd|doctor/.test(p) ? 6000 : 3000;
 }
 
+const DOC_TYPES = ["cnic", "payment", "matric", "intermediate", "other"];
+
+/** Normalise + encrypt the documents submitted with an application. */
+function buildDocuments(docs = []) {
+  if (!Array.isArray(docs)) return [];
+  return docs
+    .filter((d) => d && d.dataUrl && DOC_TYPES.includes(d.type))
+    .slice(0, 6) // hard cap — keeps the Mongo doc well under the 16MB limit
+    .map((d) => ({
+      type:     d.type,
+      label:    String(d.label || d.type).slice(0, 80),
+      mime:     d.mime || "image/jpeg",
+      imageEnc: encrypt(String(d.dataUrl)),       // AES-256 — image never stored in clear
+      ocrText:  String(d.ocrText || "").slice(0, 8000),
+    }));
+}
+
 // POST /api/requests  (public)
 const submitRequest = async (req, res, next) => {
   try {
-    const { applicantName, studentId, program, graduationDate, email, nationalId } = req.body;
+    const { applicantName, studentId, program, graduationDate, email, nationalId, documents } = req.body;
     if (!applicantName || !studentId || !program || !graduationDate || !email || !nationalId) {
       return res.status(400).json({ error: "All fields are required" });
     }
@@ -33,17 +51,20 @@ const submitRequest = async (req, res, next) => {
       email,
       nationalIdEnc: encrypt(String(nationalId)),
       fee: feeFor(program),
+      documents: buildDocuments(documents),
     });
     const safe = reqDoc.toObject();
     delete safe.nationalIdEnc;
+    delete safe.documents; // don't echo the (heavy, encrypted) images back
     res.status(201).json({ request: safe });
   } catch (err) { next(err); }
 };
 
-// GET /api/requests  (uni/admin)
+// GET /api/requests  (uni/admin) — light list (no encrypted images)
 const listRequests = async (_req, res, next) => {
   try {
-    const requests = await Request.find().sort({ createdAt: -1 }).limit(200).select("-nationalIdEnc");
+    const requests = await Request.find().sort({ createdAt: -1 }).limit(200)
+      .select("-nationalIdEnc -documents.imageEnc -documents.ocrText");
     const counts = {
       all:      requests.length,
       pending:  requests.filter((r) => r.status === "PENDING").length,
@@ -51,6 +72,44 @@ const listRequests = async (_req, res, next) => {
       rejected: requests.filter((r) => r.status === "REJECTED").length,
     };
     res.json({ requests, counts });
+  } catch (err) { next(err); }
+};
+
+// GET /api/requests/:id  (uni/admin) — full detail: decrypted document previews + OCR text
+const getRequest = async (req, res, next) => {
+  try {
+    const reqDoc = await Request.findById(req.params.id).select("-nationalIdEnc");
+    if (!reqDoc) return res.status(404).json({ error: "Request not found" });
+
+    const obj = reqDoc.toObject();
+    // Decrypt each document image for the authenticated reviewer only.
+    obj.documents = (reqDoc.documents || []).map((d) => {
+      let dataUrl = null;
+      try { dataUrl = decrypt(d.imageEnc); } catch { /* corrupt/missing — show text only */ }
+      return { type: d.type, label: d.label, mime: d.mime, ocrText: d.ocrText, dataUrl };
+    });
+    res.json({ request: obj });
+  } catch (err) { next(err); }
+};
+
+// POST /api/requests/:id/analyze  (uni/admin) — run the AI verification agent
+const analyzeRequest = async (req, res, next) => {
+  try {
+    const reqDoc = await Request.findById(req.params.id);
+    if (!reqDoc) return res.status(404).json({ error: "Request not found" });
+
+    // Always returns a verdict — uses Claude if a key is set, else the offline analyzer.
+    const aiReview = await runAIReview(reqDoc);
+
+    reqDoc.aiReview = aiReview;
+    await reqDoc.save();
+
+    writeEntry({
+      actor: req.user.walletAddress, action: "AI_REVIEW", result: "SUCCESS",
+      details: { requestId: String(reqDoc._id), recommendation: aiReview.recommendation, confidence: aiReview.confidence, model: aiReview.model },
+    });
+
+    res.json({ aiReview });
   } catch (err) { next(err); }
 };
 
@@ -121,4 +180,4 @@ const rejectRequest = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-module.exports = { submitRequest, listRequests, approveRequest, rejectRequest };
+module.exports = { submitRequest, listRequests, getRequest, analyzeRequest, approveRequest, rejectRequest };
