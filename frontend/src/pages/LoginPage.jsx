@@ -1,18 +1,19 @@
 /**
- * LoginPage — premium split-screen dark design.
- * Left: charcoal branded panel with gold accents.
- * Right: dark form panel.
+ * LoginPage — centered glass card over an animated aurora background.
+ * A deliberately distinct layout (no split-screen) for the Attestify identity.
  */
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import api    from "../api/axiosClient";
 import Button from "../components/ui/Button";
 import FormField, { inputCls } from "../components/ui/FormField";
+import { LogoMark } from "../components/Logo";
 
-const FEATURES = [
-  { icon: "⛓", title: "Blockchain-Anchored",  desc: "Every credential is hashed on a private Ethereum network — tamper-proof by design." },
-  { icon: "🔒", title: "Privacy First",         desc: "Sensitive data is AES-256 encrypted in MongoDB. Only the keccak256 hash lives on-chain." },
-  { icon: "⚡", title: "Instant Verification",  desc: "Employers verify any degree in seconds without contacting the university." },
+const DEMO = [
+  { role: "Admin",      email: "admin@iqra.edu.pk",       pass: "Admin@1234" },
+  { role: "University", email: "university@iqra.edu.pk",  pass: "University@1234" },
+  { role: "Employer",   email: "employer@techcorp.com",   pass: "Employer@1234" },
 ];
 
 export default function LoginPage() {
@@ -25,12 +26,11 @@ export default function LoginPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setError("");
-    setLoading(true);
+    setError(""); setLoading(true);
     try {
       const { data } = await api.post("/auth/login", form);
       localStorage.setItem("token", data.token);
-      localStorage.setItem("user",  JSON.stringify(data.user));
+      localStorage.setItem("user", JSON.stringify(data.user));
       navigate("/dashboard", { replace: true });
     } catch (err) {
       setError(err.response?.data?.error || "Invalid credentials — please try again.");
@@ -40,87 +40,42 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex bg-bg">
-
-      {/* ── Left panel — branding ── */}
-      <div className="hidden lg:flex lg:w-[52%] bg-sidebar flex-col justify-between p-14 relative overflow-hidden border-r border-line-soft">
-
-        {/* Background decoration */}
-        <div className="absolute top-0 left-0 w-[500px] h-[500px] rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2"
-          style={{ background: "radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%)" }} />
-        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full blur-[100px] translate-x-1/3 translate-y-1/3"
-          style={{ background: "radial-gradient(circle, rgba(201,168,76,0.05) 0%, transparent 70%)" }} />
-
-        {/* Content */}
-        <div className="relative z-10">
-          {/* Logo */}
-          <div className="flex items-center gap-3 mb-14">
-            <div className="w-11 h-11 rounded-xl bg-accent flex items-center justify-center shadow-xl shadow-accent/30">
-              <svg className="w-6 h-6 text-accent-fg" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-fg font-bold text-lg leading-none">DegreeAttest</p>
-              <p className="text-faint text-xs mt-0.5">Iqra University · Blockchain CCP</p>
-            </div>
-          </div>
-
-          {/* Headline */}
-          <h1 className="text-[2.6rem] font-extrabold text-fg leading-[1.15] mb-5 tracking-tight">
-            Academic Credentials<br />
-            <span style={{
-              background: "linear-gradient(135deg, rgb(var(--accent)) 0%, rgb(var(--accent-soft)) 50%, rgb(var(--accent)) 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}>
-              on the Blockchain.
-            </span>
-          </h1>
-          <p className="text-muted text-base leading-relaxed mb-12 max-w-md">
-            A private Ethereum network for issuing, verifying, and revoking
-            degree credentials — with a complete immutable audit trail.
-          </p>
-
-          {/* Feature list */}
-          <div className="space-y-5">
-            {FEATURES.map(({ icon, title, desc }) => (
-              <div key={title} className="flex gap-4 items-start">
-                <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-lg shrink-0">
-                  {icon}
-                </div>
-                <div>
-                  <p className="text-fg text-sm font-semibold">{title}</p>
-                  <p className="text-faint text-xs mt-0.5 leading-relaxed">{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Footer */}
-        <p className="relative z-10 text-faint text-xs">
-          BSCS Capstone Project · CLO3 · SDG 4 & 9
-        </p>
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-bg px-4 py-10">
+      {/* ── Animated aurora background ── */}
+      <div className="pointer-events-none absolute inset-0">
+        <motion.div
+          className="absolute -top-40 -left-32 w-[480px] h-[480px] rounded-full blur-[120px]"
+          style={{ background: "radial-gradient(circle, rgb(var(--accent) / 0.30), transparent 70%)" }}
+          animate={{ x: [0, 50, 0], y: [0, 30, 0] }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute -bottom-48 -right-24 w-[560px] h-[560px] rounded-full blur-[130px]"
+          style={{ background: "radial-gradient(circle, rgb(var(--accent-soft) / 0.22), transparent 70%)" }}
+          animate={{ x: [0, -40, 0], y: [0, -40, 0] }}
+          transition={{ duration: 19, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <div className="absolute inset-0 opacity-[0.035]"
+          style={{ backgroundImage: "linear-gradient(rgb(var(--accent)) 1px, transparent 1px), linear-gradient(90deg, rgb(var(--accent)) 1px, transparent 1px)", backgroundSize: "44px 44px" }} />
       </div>
 
-      {/* ── Right panel — form ── */}
-      <div className="flex-1 flex items-center justify-center px-8">
-        <div className="w-full max-w-[360px]">
+      <motion.div
+        initial={{ opacity: 0, y: 24, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+        className="relative w-full max-w-md"
+      >
+        {/* Brand */}
+        <div className="flex flex-col items-center mb-6">
+          <LogoMark size={58} />
+          <h1 className="text-2xl font-extrabold text-fg mt-4 tracking-tight">Attestify</h1>
+          <p className="text-sm text-muted mt-1">Blockchain Credential Platform</p>
+        </div>
 
-          {/* Mobile-only logo */}
-          <div className="lg:hidden text-center mb-10">
-            <div className="w-12 h-12 rounded-2xl bg-accent flex items-center justify-center mx-auto mb-3 shadow-lg shadow-accent/30">
-              <svg className="w-7 h-7 text-accent-fg" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-bold text-fg">DegreeAttest</h2>
-          </div>
-
-          <h2 className="text-2xl font-bold text-fg mb-1">Welcome back</h2>
-          <p className="text-sm text-muted mb-8">Sign in to your account to continue.</p>
+        {/* Card */}
+        <div className="rounded-2xl border border-line bg-surface/80 backdrop-blur-xl p-7 shadow-2xl">
+          <h2 className="text-lg font-bold text-fg">Welcome back</h2>
+          <p className="text-sm text-muted mb-6">Sign in to your institution dashboard.</p>
 
           <form onSubmit={handleSubmit} data-testid="login-form" className="space-y-4">
             <FormField label="Email address" required htmlFor="email">
@@ -128,8 +83,7 @@ export default function LoginPage() {
                 id="email" type="email" required
                 data-testid="input-email"
                 value={form.email} onChange={set("email")}
-                autoComplete="email"
-                placeholder="you@iqra.edu.pk"
+                autoComplete="email" placeholder="you@institution.edu"
                 className={inputCls}
               />
             </FormField>
@@ -139,47 +93,50 @@ export default function LoginPage() {
                 id="password" type="password" required
                 data-testid="input-password"
                 value={form.password} onChange={set("password")}
-                autoComplete="current-password"
-                placeholder="••••••••"
+                autoComplete="current-password" placeholder="••••••••"
                 className={inputCls}
               />
             </FormField>
 
             {error && (
-              <div
-                data-testid="login-error"
-                className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3"
-              >
+              <div data-testid="login-error"
+                className="text-sm text-red-500 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">
                 {error}
               </div>
             )}
 
-            <Button
-              type="submit"
-              loading={loading}
-              data-testid="submit-login"
-              className="w-full py-3 text-base"
-            >
-              {loading ? "Signing in…" : "Sign In"}
+            <Button type="submit" loading={loading} data-testid="submit-login" className="w-full py-3 text-base">
+              {loading ? "Signing in…" : "Sign In →"}
             </Button>
           </form>
 
-          <p className="text-center text-xs text-faint mt-8 leading-relaxed">
-            Role is determined by your registered account.<br />
-            Contact the platform admin to get access.
-          </p>
-
-          {/* Dev hint */}
-          <div className="mt-6 p-4 rounded-xl bg-surface border border-line">
-            <p className="text-xs font-bold text-faint mb-2.5 uppercase tracking-widest">Test Accounts</p>
-            <div className="space-y-1.5 text-xs font-mono">
-              <p><span className="text-accent font-bold">admin</span><span className="text-faint"> · admin@iqra.edu.pk / Admin@1234</span></p>
-              <p><span className="text-violet-400 font-bold">uni</span><span className="text-faint"> · university@iqra.edu.pk / University@1234</span></p>
-              <p><span className="text-emerald-400 font-bold">emp</span><span className="text-faint"> · employer@techcorp.com / Employer@1234</span></p>
+          {/* Demo accounts */}
+          <div className="mt-6 pt-5 border-t border-line">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-faint mb-2.5">Demo Accounts — click to fill</p>
+            <div className="grid gap-1.5">
+              {DEMO.map((d) => (
+                <button
+                  key={d.email}
+                  type="button"
+                  onClick={() => setForm({ email: d.email, password: d.pass })}
+                  className="flex items-center justify-between rounded-lg bg-elevated border border-line px-3 py-2 text-left hover:border-accent/40 transition-colors"
+                >
+                  <span className="text-xs font-semibold text-fg">{d.role}</span>
+                  <span className="text-[11px] font-mono text-muted truncate ml-2">{d.email}</span>
+                </button>
+              ))}
             </div>
           </div>
         </div>
-      </div>
+
+        {/* Public verify link + trust line */}
+        <div className="text-center mt-6 space-y-2">
+          <Link to="/verify-degree" className="text-sm text-accent hover:underline">
+            Verify a credential without signing in →
+          </Link>
+          <p className="text-xs text-faint">Secured by Ethereum · AES-256 encryption · BSCS Capstone</p>
+        </div>
+      </motion.div>
     </div>
   );
 }

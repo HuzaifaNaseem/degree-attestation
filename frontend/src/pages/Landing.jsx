@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import PublicNav   from "../components/PublicNav";
 import ChainStatus from "../components/ChainStatus";
+import Logo        from "../components/Logo";
 import FadeIn      from "../components/motion/FadeIn";
 import CountUp     from "../components/motion/CountUp";
 import { useEffect, useState } from "react";
@@ -167,7 +168,7 @@ export default function Landing() {
       <section id="features" className="relative py-24 px-6 border-t border-line-soft">
         <div className="max-w-6xl mx-auto">
           <FadeIn className="text-center mb-16">
-            <p className="text-xs font-bold uppercase tracking-widest text-accent mb-3">Why DegreeAttest</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-accent mb-3">Why Attestify</p>
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4">Built for trust, privacy, and speed</h2>
             <p className="text-muted max-w-2xl mx-auto">
               Every design decision serves one goal: making academic fraud impossible while keeping personal data private.
@@ -251,17 +252,7 @@ export default function Landing() {
       {/* ── FOOTER ── */}
       <footer className="border-t border-line-soft py-12 px-6">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
-              <svg className="w-4 h-4 text-accent-fg" fill="none" stroke="currentColor" strokeWidth={2.4} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-fg font-bold text-sm leading-none">DegreeAttest</p>
-              <p className="text-faint text-xs mt-0.5">Blockchain Degree Attestation</p>
-            </div>
-          </div>
+          <Logo size={34} sub="Blockchain Credential Platform" textClass="text-fg text-sm" />
           <p className="text-faint text-xs text-center">
             BSCS Capstone Project · Iqra University · CLO3 · SDG 4 &amp; 9
           </p>

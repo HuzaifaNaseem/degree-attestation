@@ -6,9 +6,8 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 export const THEMES = [
-  { id: "dark",  label: "Dark",  swatch: "#0F1117", accent: "#C9A84C" },
-  { id: "light", label: "Light", swatch: "#FFFFFF", accent: "#B0862E" },
-  { id: "brown", label: "Brown", swatch: "#EFE4D3", accent: "#9A6B2E" },
+  { id: "dark",  label: "Dark",  swatch: "#0D1220", accent: "#7C6CF6" },
+  { id: "light", label: "Light", swatch: "#FFFFFF", accent: "#6D5EF5" },
 ];
 
 const VALID = THEMES.map((t) => t.id);

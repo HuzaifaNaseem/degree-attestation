@@ -5,6 +5,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import ChainStatus from "./ChainStatus";
 import ThemeToggle from "./ThemeToggle";
+import Logo from "./Logo";
 
 function getUser() {
   try { return JSON.parse(localStorage.getItem("user")); } catch { return null; }
@@ -94,17 +95,7 @@ export default function Sidebar() {
 
       {/* ── Logo ── */}
       <div className="px-5 py-5 border-b border-line-soft">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center shadow-lg shadow-accent/30 shrink-0">
-            <svg className="w-5 h-5 text-accent-fg" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-            </svg>
-          </div>
-          <div className="min-w-0">
-            <p className="text-fg font-bold text-sm leading-none">DegreeAttest</p>
-            <p className="text-faint text-xs mt-0.5">Iqra University</p>
-          </div>
-        </div>
+        <Logo size={36} sub="Credential Platform" textClass="text-fg text-sm" />
       </div>
 
       {/* ── Role badge ── */}

@@ -8,53 +8,37 @@
    on <html>. Default is dark.
    ───────────────────────────────────────────────────────────── */
 
-/* DARK (default) — charcoal + gold */
+/* DARK (default) — slate + indigo-violet (Attestify) */
 :root,
 [data-theme="dark"] {
-  --bg:           11 13 20;     /* #0B0D14 */
-  --sidebar:      15 17 23;     /* #0F1117 */
-  --surface:      19 22 31;     /* #13161F */
-  --elevated:     26 30 42;     /* #1A1E2A */
-  --line:         37 42 58;     /* #252A3A */
-  --line-soft:    30 33 48;     /* #1E2130 */
-  --fg:           255 255 255;  /* white */
-  --muted:        139 144 167;  /* #8B90A7 */
-  --faint:        74 80 112;    /* #4A5070 */
-  --accent:       201 168 76;   /* #C9A84C gold */
-  --accent-soft:  245 215 139;  /* #F5D78B */
-  --accent-fg:    15 17 23;     /* dark text on gold */
+  --bg:           8 11 20;       /* #080B14 deep slate */
+  --sidebar:      13 18 32;      /* #0D1220 */
+  --surface:      18 24 41;      /* #121829 */
+  --elevated:     26 34 54;      /* #1A2236 */
+  --line:         40 50 74;      /* #28324A */
+  --line-soft:    28 35 54;      /* #1C2336 */
+  --fg:           255 255 255;   /* white */
+  --muted:        138 146 166;   /* #8A92A6 */
+  --faint:        86 95 122;     /* #565F7A */
+  --accent:       124 108 246;   /* #7C6CF6 indigo-violet */
+  --accent-soft:  167 139 250;   /* #A78BFA */
+  --accent-fg:    255 255 255;   /* white text on violet */
 }
 
-/* LIGHT — clean white + gold */
+/* LIGHT — clean white + indigo-violet */
 [data-theme="light"] {
-  --bg:           247 248 250;  /* #F7F8FA */
-  --sidebar:      255 255 255;  /* white */
-  --surface:      255 255 255;  /* white */
-  --elevated:     243 244 246;  /* #F3F4F6 */
-  --line:         226 229 234;  /* #E2E5EA */
-  --line-soft:    235 237 240;  /* #EBEDF0 */
-  --fg:           26 30 42;      /* #1A1E2A near-black */
-  --muted:        107 114 128;  /* #6B7280 */
-  --faint:        156 163 175;  /* #9CA3AF */
-  --accent:       176 134 46;   /* #B0862E darker gold for contrast */
-  --accent-soft:  201 168 76;   /* #C9A84C */
-  --accent-fg:    255 255 255;  /* white text on gold */
-}
-
-/* LIGHT BROWN — warm sepia + bronze */
-[data-theme="brown"] {
-  --bg:           244 237 226;  /* #F4EDE2 warm cream */
-  --sidebar:      239 228 211;  /* #EFE4D3 */
-  --surface:      251 246 238;  /* #FBF6EE */
-  --elevated:     240 230 215;  /* #F0E6D7 */
-  --line:         224 210 188;  /* #E0D2BC */
-  --line-soft:    232 221 202;  /* #E8DDCA */
-  --fg:           58 46 31;      /* #3A2E1F dark brown */
-  --muted:        138 122 95;   /* #8A7A5F */
-  --faint:        168 150 120;  /* #A89678 */
-  --accent:       154 107 46;   /* #9A6B2E bronze */
-  --accent-soft:  201 168 76;   /* #C9A84C */
-  --accent-fg:    255 255 255;  /* white text on bronze */
+  --bg:           246 247 251;   /* #F6F7FB */
+  --sidebar:      255 255 255;   /* white */
+  --surface:      255 255 255;   /* white */
+  --elevated:     241 243 249;   /* #F1F3F9 */
+  --line:         227 231 240;   /* #E3E7F0 */
+  --line-soft:    237 240 246;   /* #EDF0F6 */
+  --fg:           22 27 46;       /* #161B2E slate-ink */
+  --muted:        91 100 120;    /* #5B6478 */
+  --faint:        151 160 181;   /* #97A0B5 */
+  --accent:       109 94 245;    /* #6D5EF5 indigo-violet */
+  --accent-soft:  139 124 248;   /* #8B7CF8 */
+  --accent-fg:    255 255 255;   /* white text on violet */
 }
 
 @layer base {

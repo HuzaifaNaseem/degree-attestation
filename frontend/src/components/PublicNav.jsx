@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import ThemeToggle from "./ThemeToggle";
+import Logo from "./Logo";
 
 const LINKS = [
   { href: "#features", label: "Features" },
@@ -33,14 +34,7 @@ export default function PublicNav() {
     >
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center shadow-lg shadow-accent/30">
-            <svg className="w-4.5 h-4.5 text-accent-fg" fill="none" stroke="currentColor" strokeWidth={2.4} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-            </svg>
-          </div>
-          <span className="text-fg font-bold text-sm">DegreeAttest</span>
-        </Link>
+        <Link to="/"><Logo size={32} textClass="text-fg text-sm" /></Link>
 
         {/* Center links */}
         <nav className="hidden md:flex items-center gap-8">
