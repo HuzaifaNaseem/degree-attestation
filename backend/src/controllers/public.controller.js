@@ -114,4 +114,21 @@ const publicStats = async (_req, res, next) => {
   }
 };
 
-module.exports = { chainStatus, publicVerify, publicStats };
+// GET /api/public/student/:studentId — self-service credential lookup.
+// Returns the student's credential(s), PII-free, for the public Student Portal.
+const studentCredentials = async (req, res, next) => {
+  try {
+    const studentId = String(req.params.studentId || "").trim();
+    if (!studentId) return res.status(400).json({ error: "studentId required" });
+
+    const degrees = await Degree.find({ studentId })
+      .sort({ createdAt: -1 })
+      .select("degreeHash studentName studentId program graduationDate isRevoked txHash universityWallet createdAt -_id");
+
+    res.json({ studentId, count: degrees.length, degrees });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { chainStatus, publicVerify, publicStats, studentCredentials };

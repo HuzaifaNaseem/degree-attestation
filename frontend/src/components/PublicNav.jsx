@@ -9,10 +9,10 @@ import ThemeToggle from "./ThemeToggle";
 import Logo from "./Logo";
 
 const LINKS = [
-  { href: "#features", label: "Features" },
   { href: "/apply",    label: "Apply" },
+  { href: "/student",  label: "Students" },
   { href: "/explorer", label: "Explorer" },
-  { href: "#verify",   label: "Verify" },
+  { href: "/verify-degree", label: "Verify" },
 ];
 
 export default function PublicNav() {

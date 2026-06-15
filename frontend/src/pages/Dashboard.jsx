@@ -15,6 +15,9 @@ import EmptyState from "../components/ui/EmptyState";
 import Button     from "../components/ui/Button";
 import Certificate from "../components/Certificate";
 import RevokeDialog from "../components/RevokeDialog";
+import IssuanceLineChart from "../components/charts/IssuanceLineChart";
+import VerifyPieChart    from "../components/charts/VerifyPieChart";
+import FraudBarChart     from "../components/charts/FraudBarChart";
 
 function getUser() {
   try { return JSON.parse(localStorage.getItem("user")); } catch { return null; }
@@ -24,14 +27,25 @@ function getUser() {
 function AdminDashboard() {
   const [summary, setSummary] = useState(null);
   const [logs,    setLogs]    = useState([]);
+  const [reqs,    setReqs]    = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([api.get("/reports/summary"), api.get("/reports/audit?page=1&limit=6")])
-      .then(([s, l]) => { setSummary(s.data); setLogs(l.data.logs); })
+    Promise.all([
+      api.get("/reports/summary"),
+      api.get("/reports/audit?page=1&limit=6"),
+      api.get("/requests").catch(() => ({ data: { counts: {} } })),
+    ])
+      .then(([s, l, r]) => { setSummary(s.data); setLogs(l.data.logs); setReqs(r.data.counts); })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  const REQ = [
+    { label: "Pending",  value: reqs?.pending ?? 0,  cls: "text-amber-600" },
+    { label: "Approved", value: reqs?.approved ?? 0, cls: "text-emerald-500" },
+    { label: "Rejected", value: reqs?.rejected ?? 0, cls: "text-red-500" },
+  ];
 
   return (
     <div className="space-y-6">
@@ -43,6 +57,28 @@ function AdminDashboard() {
         <StatCard label="Revoked"        value={loading ? null : summary?.totalRevoked}        color="amber"  icon="🚫" loading={loading} />
         <StatCard label="Unauthorized"   value={loading ? null : summary?.totalUnauthorized}   color="purple" icon="🔒" loading={loading} />
       </div>
+
+      {/* Analytics row */}
+      <div className="grid lg:grid-cols-3 gap-4">
+        <Card title="Issuance Trend" subtitle="Last 30 days"><IssuanceLineChart /></Card>
+        <Card title="Verification Results" subtitle="Valid / Revoked / Fraud"><VerifyPieChart /></Card>
+        <Card title="Event Frequency" subtitle="Issued / Verified / Fraud / Revoked"><FraudBarChart /></Card>
+      </div>
+
+      {/* Requests overview */}
+      <Card title="Attestation Requests" subtitle="Application review queue">
+        <div className="grid grid-cols-3 gap-4">
+          {REQ.map((r) => (
+            <div key={r.label} className="rounded-xl border border-line bg-elevated p-4 text-center">
+              <p className={`text-3xl font-extrabold ${r.cls}`}>{r.value}</p>
+              <p className="text-xs text-muted mt-1">{r.label}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 pt-4 border-t border-line">
+          <Link to="/requests"><Button variant="secondary">Open Review Queue →</Button></Link>
+        </div>
+      </Card>
 
       {/* Recent activity */}
       <Card title="Recent Activity" subtitle="Latest 6 audit events">
@@ -120,6 +156,10 @@ function UniversityDashboard() {
         <StatCard label="Active Degrees"  value={loading ? null : active}          color="green" icon="✓"  loading={loading} />
         <StatCard label="Revoked Degrees" value={loading ? null : revoked}         color="amber" icon="🚫" loading={loading} />
       </div>
+
+      <Card title="Issuance Trend" subtitle="Degrees issued over the last 30 days">
+        <IssuanceLineChart />
+      </Card>
 
       <Card title="Recently Issued Degrees" subtitle="Latest 10">
         {loading ? <Spinner /> : degrees.length === 0 ? (

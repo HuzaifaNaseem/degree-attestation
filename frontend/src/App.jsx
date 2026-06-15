@@ -22,6 +22,7 @@ import PublicVerify    from "./pages/PublicVerify";
 import Explorer        from "./pages/Explorer";
 import Apply           from "./pages/Apply";
 import Requests        from "./pages/Requests";
+import StudentPortal   from "./pages/StudentPortal";
 import LoginPage       from "./pages/LoginPage";
 import Dashboard       from "./pages/Dashboard";
 import IssueDegree     from "./pages/IssueDegree";
@@ -80,6 +81,7 @@ export default function App() {
       <Route path="/verify-degree" element={<PublicVerify />} />
       <Route path="/explorer"      element={<Explorer />} />
       <Route path="/apply"         element={<Apply />} />
+      <Route path="/student"       element={<StudentPortal />} />
       <Route path="/login"         element={<LoginPage />} />
 
       {/* ── All authenticated roles ── */}
