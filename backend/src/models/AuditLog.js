@@ -19,6 +19,7 @@ const AuditLogSchema = new mongoose.Schema(
         "AUTH_LOGIN",
         "AUTH_FAILURE",
         "UNAUTHORIZED_ACCESS", // JWT valid but wrong role
+        "ACCOUNT_DELETED",     // a user deleted their own account
       ],
     },
     degreeHash:   { type: String, index: true },    // relevant hash (if applicable)

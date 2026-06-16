@@ -1,17 +1,17 @@
 /**
  * ThemeContext — app-wide theme state.
  * Persists choice to localStorage and sets data-theme on <html>.
- * Themes: "dark" (default) · "light" · "brown" (warm sepia).
+ * Themes: "dim" (default, soft slate) · "light".
  */
 import { createContext, useContext, useEffect, useState } from "react";
 
 export const THEMES = [
-  { id: "dark",  label: "Dark",  swatch: "#0D1220", accent: "#7C6CF6" },
+  { id: "dim",   label: "Dim",   swatch: "#212738", accent: "#8171F8" },
   { id: "light", label: "Light", swatch: "#FFFFFF", accent: "#6D5EF5" },
 ];
 
 const VALID = THEMES.map((t) => t.id);
-const ThemeCtx = createContext({ theme: "dark", setTheme: () => {} });
+const ThemeCtx = createContext({ theme: "dim", setTheme: () => {} });
 
 function applyTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);
@@ -19,8 +19,9 @@ function applyTheme(theme) {
 
 export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(() => {
-    const saved = localStorage.getItem("theme");
-    return VALID.includes(saved) ? saved : "dark";
+    let saved = localStorage.getItem("theme");
+    if (saved === "dark") saved = "dim";  // migrate the old dark theme → dim
+    return VALID.includes(saved) ? saved : "dim";
   });
 
   // Apply on mount + whenever it changes

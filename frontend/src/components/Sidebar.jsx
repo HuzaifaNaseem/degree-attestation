@@ -2,7 +2,9 @@
  * Sidebar — dark charcoal + gold accent navigation.
  * Role-based nav links, user card, sign out.
  */
+import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import api from "../api/axiosClient";
 import ChainStatus from "./ChainStatus";
 import ThemeToggle from "./ThemeToggle";
 import Logo from "./Logo";
@@ -87,10 +89,27 @@ export default function Sidebar({ open = false, onClose = () => {} }) {
   const user      = getUser();
   const links     = ROLE_LINKS[user?.role] ?? [];
 
+  const [confirmDel, setConfirmDel] = useState(false);
+  const [deleting, setDeleting]     = useState(false);
+  const [delErr, setDelErr]         = useState("");
+
   function signOut() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/login", { replace: true });
+  }
+
+  async function deleteAccount() {
+    setDeleting(true); setDelErr("");
+    try {
+      await api.delete("/auth/account");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      navigate("/login", { replace: true });
+    } catch (e) {
+      setDelErr(e.response?.data?.error || "Could not delete account. Please try again.");
+      setDeleting(false);
+    }
   }
 
   const initials = user?.name
@@ -172,8 +191,42 @@ export default function Sidebar({ open = false, onClose = () => {} }) {
           <Icons.Logout />
           Sign Out
         </button>
+
+        <button
+          onClick={() => { setDelErr(""); setConfirmDel(true); }}
+          data-testid="btn-delete-account"
+          className="w-full text-center text-[11px] text-faint hover:text-red-500 transition-colors pt-1"
+        >
+          Delete account
+        </button>
       </div>
       </aside>
+
+      {/* ── Delete-account confirmation ── */}
+      {confirmDel && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+          onClick={() => !deleting && setConfirmDel(false)}>
+          <div onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm bg-surface border border-line rounded-2xl p-6">
+            <div className="w-12 h-12 rounded-2xl bg-red-500/15 border border-red-500/30 text-red-500 text-2xl flex items-center justify-center mb-4">⚠</div>
+            <h3 className="text-lg font-bold text-fg">Delete your account?</h3>
+            <p className="text-sm text-muted mt-1.5">
+              This permanently removes your login{user?.role === "student" ? "" : ` (${user?.role})`}. Any credentials already issued on-chain stay valid and verifiable — this only deletes your account access.
+            </p>
+            {delErr && <p className="text-sm text-red-500 bg-red-500/10 border border-red-500/30 rounded-xl px-3 py-2 mt-3">{delErr}</p>}
+            <div className="flex gap-3 mt-5">
+              <button onClick={() => setConfirmDel(false)} disabled={deleting}
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold bg-elevated border border-line text-muted hover:text-fg disabled:opacity-50">
+                Cancel
+              </button>
+              <button onClick={deleteAccount} disabled={deleting} data-testid="confirm-delete-account"
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold bg-red-600 text-white hover:bg-red-700 disabled:opacity-50">
+                {deleting ? "Deleting…" : "Delete account"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

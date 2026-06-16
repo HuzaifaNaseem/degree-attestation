@@ -5,22 +5,23 @@
 /* ─────────────────────────────────────────────────────────────
    Theme tokens — values are "R G B" channel triplets so Tailwind
    opacity modifiers (bg-accent/10) work. Switched via data-theme
-   on <html>. Default is dark.
+   on <html>. Default is dim.
    ───────────────────────────────────────────────────────────── */
 
-/* DARK (default) — slate + indigo-violet (Attestify) */
+/* DIM (default) — soft muted slate + indigo-violet (easier on the eyes
+   than a pure-black dark theme: lighter surfaces, off-white text) */
 :root,
-[data-theme="dark"] {
-  --bg:           8 11 20;       /* #080B14 deep slate */
-  --sidebar:      13 18 32;      /* #0D1220 */
-  --surface:      18 24 41;      /* #121829 */
-  --elevated:     26 34 54;      /* #1A2236 */
-  --line:         40 50 74;      /* #28324A */
-  --line-soft:    28 35 54;      /* #1C2336 */
-  --fg:           255 255 255;   /* white */
-  --muted:        138 146 166;   /* #8A92A6 */
-  --faint:        86 95 122;     /* #565F7A */
-  --accent:       124 108 246;   /* #7C6CF6 indigo-violet */
+[data-theme="dim"] {
+  --bg:           24 28 41;      /* #181C29 soft slate (not black) */
+  --sidebar:      29 34 49;      /* #1D2231 */
+  --surface:      33 39 56;      /* #212738 */
+  --elevated:     42 49 70;      /* #2A3146 */
+  --line:         55 64 89;      /* #374059 */
+  --line-soft:    43 50 71;      /* #2B3247 */
+  --fg:           229 231 240;   /* #E5E7F0 soft white (not pure) */
+  --muted:        163 171 191;   /* #A3ABBF */
+  --faint:        110 119 144;   /* #6E7790 */
+  --accent:       129 113 248;   /* #8171F8 indigo-violet */
   --accent-soft:  167 139 250;   /* #A78BFA */
   --accent-fg:    255 255 255;   /* white text on violet */
 }

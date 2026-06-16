@@ -129,4 +129,32 @@ router.get("/my-credentials", requireAuth(["student"]), async (req, res, next) =
   }
 });
 
+// DELETE /api/auth/account — a logged-in user permanently deletes their own account
+router.delete("/account", requireAuth(["admin", "university", "employer", "student"]), async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    // Safety: never delete the last admin (that would lock everyone out).
+    if (user.role === "admin") {
+      const admins = await User.countDocuments({ role: "admin" });
+      if (admins <= 1) return res.status(400).json({ error: "Cannot delete the only admin account." });
+    }
+
+    await User.deleteOne({ _id: user._id });
+
+    await AuditLog.create({
+      eventType: "ACCOUNT_DELETED",
+      actor:     user._id.toString(),
+      actorRole: user.role,
+      details:   { email: user.email },
+      isFraud:   false,
+    }).catch(() => {});
+
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;
