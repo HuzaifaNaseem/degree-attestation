@@ -123,9 +123,9 @@ export default function Requests() {
 
 /* ── Review modal ── */
 const AI_STYLE = {
-  APPROVE: { ring: "border-emerald-500/40 bg-emerald-500/[0.07]", text: "text-emerald-500", label: "Recommend APPROVE" },
-  REJECT:  { ring: "border-red-500/40 bg-red-500/[0.07]",         text: "text-red-500",     label: "Recommend REJECT" },
-  REVIEW:  { ring: "border-amber-500/40 bg-amber-500/[0.07]",     text: "text-amber-600",   label: "Needs human REVIEW" },
+  APPROVE: { accent: "text-emerald-500", bar: "bg-emerald-500", bg: "bg-emerald-500/[0.06]", bd: "border-emerald-500/30", icon: "✓", label: "Recommend approval" },
+  REJECT:  { accent: "text-red-500",     bar: "bg-red-500",     bg: "bg-red-500/[0.06]",     bd: "border-red-500/30",     icon: "✕", label: "Recommend rejection" },
+  REVIEW:  { accent: "text-amber-600",   bar: "bg-amber-500",   bg: "bg-amber-500/[0.06]",   bd: "border-amber-500/30",   icon: "!", label: "Needs human review" },
 };
 
 function ReviewModal({ request, onClose, onResult }) {
@@ -138,6 +138,7 @@ function ReviewModal({ request, onClose, onResult }) {
   const [error, setError]     = useState("");
   const isPending = request.status === "PENDING";
   const r = detail || request;            // show list data immediately, enrich when detail loads
+  const ref = request._id.slice(-8).toUpperCase();
 
   useEffect(() => {
     api.get(`/requests/${request._id}`)
@@ -170,138 +171,197 @@ function ReviewModal({ request, onClose, onResult }) {
     } catch (e) { setError(e.response?.data?.error || "Reject failed"); } finally { setBusy(""); }
   }
 
-  const fmt = (u) => u ? new Date(u * 1000).toLocaleDateString() : "—";
+  const fmt = (u) => u ? new Date(u * 1000).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "—";
+  const s = ai ? (AI_STYLE[ai.recommendation] || AI_STYLE.REVIEW) : null;
 
   return (
     <AnimatePresence>
-      <motion.div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+      <motion.div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-4"
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
         <motion.div onClick={(e) => e.stopPropagation()}
-          initial={{ opacity: 0, y: 20, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }}
-          className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-surface border border-line rounded-2xl p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-bold text-fg">{r.applicantName}</h3>
-              <p className="text-xs text-faint font-mono">REF {request._id.slice(-8).toUpperCase()}</p>
-            </div>
-            <Badge variant={STATUS_BADGE[request.status]}>{request.status}</Badge>
-          </div>
+          initial={{ opacity: 0, y: 24, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }}
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          className="w-full max-w-2xl max-h-[92vh] flex flex-col bg-surface border border-line rounded-2xl overflow-hidden shadow-2xl">
 
-          <dl className="rounded-xl bg-elevated border border-line p-4 text-sm space-y-2 mb-4">
-            <Row k="Program" v={r.program} />
-            <Row k="Student ID" v={r.studentId} mono />
-            <Row k="Graduation" v={fmt(r.graduationDate)} />
-            <Row k="Email" v={r.email} />
-            <Row k="Attestation fee" v={`Rs. ${r.fee?.toLocaleString()}`} />
-            {r.degreeHash && <Row k="Degree hash" v={`${r.degreeHash.slice(0, 22)}…`} mono />}
-            {r.reviewNote && <Row k="Review note" v={r.reviewNote} />}
-          </dl>
-
-          {/* ── Uploaded documents (decrypted for the reviewer) + OCR text ── */}
-          {detail?.documents?.length > 0 && (
-            <div className="mb-4">
-              <p className="text-xs font-bold uppercase tracking-widest text-faint mb-2">Documents ({detail.documents.length})</p>
-              <div className="space-y-2">
-                {detail.documents.map((d, i) => <DocReview key={i} doc={d} />)}
+          {/* ── Header ── */}
+          <header className="relative shrink-0 px-6 py-5 border-b border-line bg-gradient-to-br from-accent/10 via-surface to-surface">
+            <button onClick={onClose} aria-label="Close"
+              className="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center text-muted hover:text-fg hover:bg-fg/5 transition-colors">✕</button>
+            <div className="flex items-center gap-4 pr-10">
+              <div className="w-12 h-12 rounded-2xl bg-accent/15 border border-accent/30 text-accent text-xl font-bold flex items-center justify-center shrink-0">
+                {r.applicantName?.[0]?.toUpperCase() ?? "?"}
               </div>
-            </div>
-          )}
-
-          {/* ── AI verification agent ── */}
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-bold uppercase tracking-widest text-faint">AI Verification Agent</p>
-              <Button variant="secondary" onClick={analyze} loading={analyzing} className="!py-1 text-xs">
-                {ai ? "Re-run analysis" : "Run AI analysis"}
-              </Button>
-            </div>
-            {ai ? (
-              <div className={`rounded-xl border p-4 ${AI_STYLE[ai.recommendation]?.ring || "border-line bg-elevated"}`}>
-                <div className="flex items-center justify-between">
-                  <span className={`text-sm font-extrabold ${AI_STYLE[ai.recommendation]?.text}`}>{AI_STYLE[ai.recommendation]?.label || ai.recommendation}</span>
-                  <span className="text-xs text-muted">{ai.confidence}% confidence</span>
+              <div className="min-w-0">
+                <h3 className="text-xl font-bold text-fg truncate">{r.applicantName}</h3>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-[11px] font-mono text-faint">REF {ref}</span>
+                  <span className="text-faint">·</span>
+                  <Badge variant={STATUS_BADGE[request.status]}>{request.status}</Badge>
                 </div>
-                {ai.summary && <p className="text-sm text-fg/90 mt-2">{ai.summary}</p>}
-                {ai.reasons?.length > 0 && (
-                  <ul className="mt-2 space-y-1 text-xs text-muted list-disc list-inside">
-                    {ai.reasons.map((x, i) => <li key={i}>{x}</li>)}
-                  </ul>
-                )}
-                {ai.redFlags?.length > 0 && (
-                  <div className="mt-2 pt-2 border-t border-line">
-                    <p className="text-xs font-semibold text-red-500 mb-1">⚠ Red flags</p>
-                    <ul className="space-y-1 text-xs text-red-500/90 list-disc list-inside">
-                      {ai.redFlags.map((x, i) => <li key={i}>{x}</li>)}
-                    </ul>
-                  </div>
-                )}
-                <p className="text-[11px] text-faint mt-2">Advisory only · {ai.model} · the reviewer makes the final decision</p>
               </div>
-            ) : (
-              <p className="text-xs text-muted bg-elevated border border-line rounded-xl px-4 py-3">
-                Run the AI agent to cross-check the uploaded documents against the application and get an approve/reject recommendation.
-              </p>
-            )}
-          </div>
+            </div>
+          </header>
 
-          {isPending ? (
-            <>
-              <FormField label="University Wallet Private Key" hint="Required to issue the credential on-chain" htmlFor="rk">
-                <input id="rk" type="password" value={privateKey} onChange={(e) => setKey(e.target.value)} placeholder="0x…" className={`${inputCls} font-mono`} />
-              </FormField>
-              <div className="mt-3">
+          {/* ── Scrollable body ── */}
+          <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+            {/* Applicant details */}
+            <section>
+              <SectionLabel>Applicant Details</SectionLabel>
+              <div className="grid grid-cols-2 gap-px bg-line rounded-xl overflow-hidden border border-line">
+                <Field k="Program" v={r.program} wide />
+                <Field k="Student ID" v={r.studentId} mono />
+                <Field k="Graduation" v={fmt(r.graduationDate)} />
+                <Field k="Email" v={r.email} wide />
+                <Field k="Attestation fee" v={`Rs. ${r.fee?.toLocaleString()}`} />
+                <Field k="Submitted" v={r.createdAt ? new Date(r.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "—"} />
+                {r.degreeHash && <Field k="Degree hash" v={`${r.degreeHash.slice(0, 26)}…`} mono wide />}
+                {r.reviewNote && <Field k="Review note" v={r.reviewNote} wide />}
+              </div>
+            </section>
+
+            {/* Documents */}
+            <section>
+              <SectionLabel>Documents{detail?.documents?.length ? ` · ${detail.documents.length}` : ""}</SectionLabel>
+              {detail == null ? (
+                <p className="text-xs text-faint">Loading documents…</p>
+              ) : detail.documents?.length ? (
+                <div className="grid sm:grid-cols-2 gap-2.5">
+                  {detail.documents.map((d, i) => <DocReview key={i} doc={d} />)}
+                </div>
+              ) : (
+                <p className="text-xs text-muted bg-elevated border border-line rounded-xl px-4 py-3">No documents were attached to this application.</p>
+              )}
+            </section>
+
+            {/* AI verification */}
+            <section>
+              <div className="flex items-center justify-between mb-2">
+                <SectionLabel className="mb-0">AI Verification Agent</SectionLabel>
+                <Button variant="secondary" onClick={analyze} loading={analyzing} className="!py-1.5 !px-3 text-xs">
+                  {ai ? "Re-run" : "Run AI analysis"}
+                </Button>
+              </div>
+              {ai ? (
+                <div className={`rounded-xl border ${s.bd} ${s.bg} overflow-hidden`}>
+                  <div className="flex items-stretch">
+                    <div className={`w-1 shrink-0 ${s.bar}`} />
+                    <div className="p-4 flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className={`inline-flex items-center gap-2 text-sm font-extrabold ${s.accent}`}>
+                          <span className={`w-5 h-5 rounded-full ${s.bar} text-white text-[11px] font-bold flex items-center justify-center`}>{s.icon}</span>
+                          {s.label}
+                        </span>
+                        <span className="text-xs font-semibold text-muted shrink-0">{ai.confidence}%</span>
+                      </div>
+                      {/* confidence bar */}
+                      <div className="h-1.5 rounded-full bg-line mt-2.5 overflow-hidden">
+                        <div className={`h-full rounded-full ${s.bar}`} style={{ width: `${ai.confidence}%` }} />
+                      </div>
+                      {ai.summary && <p className="text-sm text-fg/90 mt-3 leading-relaxed">{ai.summary}</p>}
+                      {ai.reasons?.length > 0 && (
+                        <ul className="mt-3 space-y-1.5">
+                          {ai.reasons.map((x, i) => (
+                            <li key={i} className="flex gap-2 text-xs text-muted"><span className="text-emerald-500 shrink-0">✓</span><span>{x}</span></li>
+                          ))}
+                        </ul>
+                      )}
+                      {ai.redFlags?.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-line">
+                          <p className="text-xs font-semibold text-red-500 mb-1.5">Red flags</p>
+                          <ul className="space-y-1.5">
+                            {ai.redFlags.map((x, i) => (
+                              <li key={i} className="flex gap-2 text-xs text-red-500/90"><span className="shrink-0">⚠</span><span>{x}</span></li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-line">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-elevated border border-line text-muted">🤖 {ai.model}</span>
+                        <span className="text-[11px] text-faint">Advisory only — the reviewer makes the final decision.</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-muted bg-elevated border border-line rounded-xl px-4 py-3 leading-relaxed">
+                  Run the agent to cross-check the uploaded documents against the application and get an approve / review / reject recommendation.
+                </p>
+              )}
+            </section>
+
+            {/* Decision inputs (pending only) */}
+            {isPending && (
+              <section className="space-y-3 pt-1">
+                <SectionLabel>Reviewer Decision</SectionLabel>
+                <FormField label="University Wallet Private Key" hint="Required to issue the credential on-chain" htmlFor="rk">
+                  <input id="rk" type="password" value={privateKey} onChange={(e) => setKey(e.target.value)} placeholder="0x…" className={`${inputCls} font-mono`} />
+                </FormField>
                 <FormField label="Rejection reason (if rejecting)" htmlFor="rr">
                   <input id="rr" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. Documents incomplete" className={inputCls} />
                 </FormField>
-              </div>
-              {error && <p className="text-sm text-red-500 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 mt-3">{error}</p>}
-              <div className="flex gap-3 mt-5">
-                <Button variant="danger" onClick={reject} loading={busy === "reject"} className="flex-1">Reject</Button>
-                <Button onClick={approve} loading={busy === "approve"} data-testid="approve-request" className="flex-1">Approve & Issue ⛓</Button>
-              </div>
-              {busy === "approve" && <p className="text-xs text-muted text-center mt-3">⏳ Issuing on the blockchain — up to a minute. Please wait.</p>}
-            </>
-          ) : (
-            <>
-              {error && <p className="text-sm text-red-500 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 mb-3">{error}</p>}
+              </section>
+            )}
+
+            {error && <p className="text-sm text-red-500 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">{error}</p>}
+          </div>
+
+          {/* ── Sticky footer ── */}
+          <footer className="shrink-0 px-6 py-4 border-t border-line bg-surface">
+            {isPending ? (
+              <>
+                <div className="flex gap-3">
+                  <Button variant="danger" onClick={reject} loading={busy === "reject"} className="flex-1">Reject</Button>
+                  <Button onClick={approve} loading={busy === "approve"} data-testid="approve-request" className="flex-1">Approve &amp; Issue ⛓</Button>
+                </div>
+                {busy === "approve" && <p className="text-xs text-muted text-center mt-2.5">⏳ Issuing on the blockchain — up to a minute. Please wait.</p>}
+              </>
+            ) : (
               <Button variant="secondary" onClick={onClose} className="w-full">Close</Button>
-            </>
-          )}
+            )}
+          </footer>
         </motion.div>
       </motion.div>
     </AnimatePresence>
   );
 }
 
+function SectionLabel({ children, className = "" }) {
+  return <p className={`text-[11px] font-bold uppercase tracking-widest text-faint mb-2 ${className}`}>{children}</p>;
+}
+
 /* ── One uploaded document: preview thumbnail + collapsible OCR text ── */
 function DocReview({ doc }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="rounded-xl border border-line bg-elevated p-3">
+    <div className="rounded-xl border border-line bg-elevated p-3 hover:border-accent/25 transition-colors">
       <div className="flex items-center gap-3">
         {doc.dataUrl
           ? <img src={doc.dataUrl} alt={doc.label} className="w-12 h-12 rounded-lg object-cover border border-line shrink-0" />
           : <div className="w-12 h-12 rounded-lg bg-line flex items-center justify-center text-faint text-lg shrink-0">📄</div>}
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-fg truncate">{doc.label}</p>
-          <p className="text-[11px] text-faint">{doc.ocrText ? `${doc.ocrText.length} chars extracted` : "no text extracted"}</p>
+          <p className="text-[11px] mt-0.5">
+            {doc.ocrText
+              ? <span className="text-emerald-500">✓ {doc.ocrText.length} chars OCR'd</span>
+              : <span className="text-faint">no text extracted</span>}
+          </p>
         </div>
         {doc.ocrText && (
-          <button onClick={() => setOpen((o) => !o)} className="text-xs text-accent hover:underline shrink-0">{open ? "Hide text" : "View text"}</button>
+          <button onClick={() => setOpen((o) => !o)} className="text-xs font-semibold text-accent hover:underline shrink-0">{open ? "Hide" : "View text"}</button>
         )}
       </div>
       {open && doc.ocrText && (
-        <pre className="mt-2 max-h-40 overflow-y-auto whitespace-pre-wrap break-words text-[11px] text-muted bg-bg border border-line rounded-lg p-2 font-mono">{doc.ocrText}</pre>
+        <pre className="mt-2.5 max-h-40 overflow-y-auto whitespace-pre-wrap break-words text-[11px] text-muted bg-bg border border-line rounded-lg p-2.5 font-mono">{doc.ocrText}</pre>
       )}
     </div>
   );
 }
 
-function Row({ k, v, mono }) {
+function Field({ k, v, mono, wide }) {
   return (
-    <div className="flex justify-between gap-4">
-      <dt className="text-muted shrink-0">{k}</dt>
-      <dd className={`text-fg text-right ${mono ? "font-mono text-xs text-accent/80" : "font-medium"}`}>{v}</dd>
+    <div className={`bg-surface p-3 ${wide ? "col-span-2" : ""}`}>
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-faint">{k}</p>
+      <p className={`text-sm mt-0.5 break-words ${mono ? "font-mono text-xs text-accent/80" : "font-medium text-fg"}`}>{v}</p>
     </div>
   );
 }
