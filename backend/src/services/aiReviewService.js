@@ -6,10 +6,11 @@
  * cross-checks the documents against the application and recommends
  * APPROVE / REVIEW / REJECT with a confidence score, reasons, and red flags.
  *
- * Two engines, automatically chosen:
- *   1. LLM (Claude)      — used when ANTHROPIC_API_KEY is set and the call succeeds.
- *   2. Rule-based (offline) — zero-cost fallback used when there's no key, no API
- *      credit, or the API call fails. Same output shape, so the UI is identical.
+ * Engines, chosen automatically by which key is configured:
+ *   1. Claude (Anthropic)  — if ANTHROPIC_API_KEY is set.
+ *   2. Google Gemini       — if GEMINI_API_KEY is set (has a FREE tier — no card).
+ *   3. Rule-based offline  — zero-cost fallback when there's no key, no credit,
+ *      or the LLM call fails. Same output shape, so the UI is identical.
  *
  * The recommendation is ADVISORY ONLY — the human admin always makes the final
  * decision (the approve/reject endpoints are unchanged and require a wallet key).
@@ -17,42 +18,25 @@
 const Anthropic = require("@anthropic-ai/sdk");
 const { decrypt } = require("./encryptionService");
 
-// Default to the latest, most capable model. Override with AI_MODEL in env
-// (e.g. AI_MODEL=claude-haiku-4-5 for a cheaper/faster verdict).
-const MODEL = process.env.AI_MODEL || "claude-opus-4-8";
-
 const clamp = (n) => Math.max(0, Math.min(100, Math.round(Number(n) || 0)));
 
 /**
  * Run the verification agent over a request document. Always resolves with a
- * verdict — never throws for "no API key": it falls back to the offline engine.
+ * verdict — never throws for "no key": it falls back to the offline engine.
  */
 async function analyzeRequest(reqDoc) {
   if (process.env.ANTHROPIC_API_KEY) {
-    try {
-      return await llmReview(reqDoc);
-    } catch (err) {
-      // No credit / bad key / network / refusal → fall back instead of failing.
-      console.warn("AI agent: LLM review failed, using offline analyzer —", err.message);
-    }
+    try { return await claudeReview(reqDoc); }
+    catch (err) { console.warn("AI agent: Claude failed, trying next engine —", err.message); }
+  }
+  if (process.env.GEMINI_API_KEY) {
+    try { return await geminiReview(reqDoc); }
+    catch (err) { console.warn("AI agent: Gemini failed, using offline analyzer —", err.message); }
   }
   return ruleBasedReview(reqDoc);
 }
 
-/* ──────────────────────────── 1) LLM engine ──────────────────────────── */
-
-const VERDICT_SCHEMA = {
-  type: "object",
-  properties: {
-    recommendation: { type: "string", enum: ["APPROVE", "REJECT", "REVIEW"] },
-    confidence:     { type: "integer" },
-    summary:        { type: "string" },
-    reasons:        { type: "array", items: { type: "string" } },
-    redFlags:       { type: "array", items: { type: "string" } },
-  },
-  required: ["recommendation", "confidence", "summary", "reasons", "redFlags"],
-  additionalProperties: false,
-};
+/* ─────────────────────── Shared prompt + helpers ─────────────────────── */
 
 const SYSTEM_PROMPT = `You are a degree-attestation verification officer for a university registrar.
 You review an applicant's attestation request and the OCR text of their uploaded documents
@@ -73,7 +57,8 @@ Decide one recommendation:
 - REVIEW: something is missing, unreadable, or needs a human to look closer.
 - REJECT: clear contradiction, wrong person, or evidence of fraud.
 
-You are an assistant — a human officer makes the final decision. Be specific and concise.`;
+You are an assistant — a human officer makes the final decision. Be specific and concise.
+Return strictly the JSON object: { recommendation, confidence (0-100 integer), summary, reasons[], redFlags[] }.`;
 
 const fmtDate = (unix) =>
   unix ? new Date(unix * 1000).toISOString().slice(0, 10) : "(not provided)";
@@ -101,35 +86,96 @@ function buildCaseText(reqDoc) {
   ].join("\n");
 }
 
-async function llmReview(reqDoc) {
-  const client = new Anthropic(); // reads ANTHROPIC_API_KEY from env
-
-  const response = await client.messages.create({
-    model: MODEL,
-    max_tokens: 1500,
-    system: SYSTEM_PROMPT,
-    output_config: { format: { type: "json_schema", schema: VERDICT_SCHEMA } },
-    messages: [
-      { role: "user", content: "Review this degree-attestation case and return your verdict.\n\n" + buildCaseText(reqDoc) },
-    ],
-  });
-
-  const textBlock = response.content.find((b) => b.type === "text");
-  if (!textBlock?.text) throw new Error(`AI returned no verdict (stop_reason: ${response.stop_reason})`);
-  const v = JSON.parse(textBlock.text);
-
+/** Normalise any engine's raw JSON object into our stored verdict shape. */
+function normalize(v, modelLabel) {
   return {
-    recommendation: v.recommendation,
+    recommendation: ["APPROVE", "REJECT", "REVIEW"].includes(v.recommendation) ? v.recommendation : "REVIEW",
     confidence:     clamp(v.confidence),
-    summary:        v.summary || "",
-    reasons:        Array.isArray(v.reasons) ? v.reasons : [],
-    redFlags:       Array.isArray(v.redFlags) ? v.redFlags : [],
-    model:          response.model || MODEL,
+    summary:        String(v.summary || ""),
+    reasons:        Array.isArray(v.reasons) ? v.reasons.map(String) : [],
+    redFlags:       Array.isArray(v.redFlags) ? v.redFlags.map(String) : [],
+    model:          modelLabel,
     createdAt:      new Date(),
   };
 }
 
-/* ─────────────────────── 2) Rule-based engine (offline) ─────────────────────── */
+const USER_TURN = (reqDoc) =>
+  "Review this degree-attestation case and return your verdict.\n\n" + buildCaseText(reqDoc);
+
+/* ──────────────────────────── 1) Claude engine ──────────────────────────── */
+
+const CLAUDE_SCHEMA = {
+  type: "object",
+  properties: {
+    recommendation: { type: "string", enum: ["APPROVE", "REJECT", "REVIEW"] },
+    confidence:     { type: "integer" },
+    summary:        { type: "string" },
+    reasons:        { type: "array", items: { type: "string" } },
+    redFlags:       { type: "array", items: { type: "string" } },
+  },
+  required: ["recommendation", "confidence", "summary", "reasons", "redFlags"],
+  additionalProperties: false,
+};
+
+async function claudeReview(reqDoc) {
+  const model = process.env.AI_MODEL || "claude-opus-4-8";
+  const client = new Anthropic(); // reads ANTHROPIC_API_KEY
+
+  const response = await client.messages.create({
+    model,
+    max_tokens: 1500,
+    system: SYSTEM_PROMPT,
+    output_config: { format: { type: "json_schema", schema: CLAUDE_SCHEMA } },
+    messages: [{ role: "user", content: USER_TURN(reqDoc) }],
+  });
+
+  const textBlock = response.content.find((b) => b.type === "text");
+  if (!textBlock?.text) throw new Error(`Claude returned no verdict (stop_reason: ${response.stop_reason})`);
+  return normalize(JSON.parse(textBlock.text), `Claude · ${response.model || model}`);
+}
+
+/* ──────────────────── 2) Google Gemini engine (free tier) ──────────────────── */
+
+// Gemini uses its own (OpenAPI-style) schema dialect — types are UPPERCASE.
+const GEMINI_SCHEMA = {
+  type: "OBJECT",
+  properties: {
+    recommendation: { type: "STRING", enum: ["APPROVE", "REJECT", "REVIEW"] },
+    confidence:     { type: "INTEGER" },
+    summary:        { type: "STRING" },
+    reasons:        { type: "ARRAY", items: { type: "STRING" } },
+    redFlags:       { type: "ARRAY", items: { type: "STRING" } },
+  },
+  required: ["recommendation", "confidence", "summary", "reasons", "redFlags"],
+};
+
+async function geminiReview(reqDoc) {
+  const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`;
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+      contents: [{ role: "user", parts: [{ text: USER_TURN(reqDoc) }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: GEMINI_SCHEMA,
+        temperature: 0.2,
+        maxOutputTokens: 1500,
+      },
+    }),
+  });
+
+  if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const data = await res.json();
+  const text = (data?.candidates?.[0]?.content?.parts || []).map((p) => p.text).join("").trim();
+  if (!text) throw new Error("Gemini returned no content");
+  return normalize(JSON.parse(text), `Google Gemini · ${model}`);
+}
+
+/* ─────────────────────── 3) Rule-based engine (offline) ─────────────────────── */
 
 const norm   = (s) => String(s || "").toLowerCase();
 const digits = (s) => String(s || "").replace(/\D/g, "");
@@ -148,7 +194,6 @@ function ruleBasedReview(reqDoc) {
   const reasons = [];
   const redFlags = [];
 
-  // No documents at all → needs a human.
   if (docs.length === 0) {
     return {
       recommendation: "REVIEW", confidence: 20,
@@ -200,10 +245,8 @@ function ruleBasedReview(reqDoc) {
 
   const missingCount = ["cnic", "payment", "matric", "intermediate"].filter((t) => !byType[t]).length;
 
-  // Decide
   let recommendation, confidence, summary;
   if (nameHits.length === 0 && allText.replace(/\s/g, "").length > 40) {
-    // OCR clearly worked but the applicant's name is absent → likely wrong person.
     recommendation = "REJECT"; confidence = 72;
     summary = "The applicant's name does not appear in any uploaded document, which suggests a mismatch between the applicant and their documents.";
   } else if (missingCount >= 2 || score < 45) {
