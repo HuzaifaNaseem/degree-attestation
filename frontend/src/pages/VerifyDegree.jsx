@@ -47,7 +47,7 @@ export default function VerifyDegree() {
                 "The hash reveals no personal information.",
                 "Every verification emits an immutable on-chain event.",
                 "Fraud attempts are automatically logged and flagged.",
-                "Your employer wallet pays a small gas fee for the event.",
+                "The signing wallet pays a small gas fee for the event.",
               ].map((item) => (
                 <li key={item} className="flex gap-2.5 text-xs text-muted">
                   <span className="text-accent font-bold shrink-0 mt-0.5">·</span>

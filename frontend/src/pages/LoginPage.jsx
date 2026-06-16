@@ -13,7 +13,6 @@ import { LogoMark } from "../components/Logo";
 const DEMO = [
   { role: "Admin",      email: "admin@iqra.edu.pk",       pass: "Admin@1234" },
   { role: "University", email: "university@iqra.edu.pk",  pass: "University@1234" },
-  { role: "Employer",   email: "employer@techcorp.com",   pass: "Employer@1234" },
 ];
 
 export default function LoginPage() {

@@ -1,6 +1,8 @@
 /**
  * verify.controller.js
- * POST /api/degrees/verify — employer verifies a degree by hash.
+ * POST /api/degrees/verify — official on-chain verification of a degree by hash.
+ * Performed by university/admin (the verifying party). verifyDegree is
+ * permissionless on-chain, so any funded wallet may record the verification.
  *
  * Response always succeeds (HTTP 200) — fraud attempts return status "INVALID".
  * Status enum:
@@ -19,18 +21,6 @@ const { writeEntry }  = require("../services/auditLogger");
 const verifyDegree = async (req, res, next) => {
   try {
     const { degreeHash, privateKey } = req.body;
-
-    // On-chain role re-check — JWT is not the ground truth
-    const onChain = await contractService.hasEmployerRole(req.user.walletAddress);
-    if (!onChain) {
-      writeEntry({
-        actor:  req.user.walletAddress,
-        action: "DEGREE_VERIFIED",
-        result: "FAILURE",
-        details: { reason: "wallet missing EMPLOYER_ROLE on-chain" },
-      });
-      return res.status(403).json({ error: "Wallet does not hold EMPLOYER_ROLE on-chain" });
-    }
 
     // Verify on-chain — always emits DegreeVerified, even for unknown hashes
     const { receipt, exists, valid, revoked, txTimeMs } =

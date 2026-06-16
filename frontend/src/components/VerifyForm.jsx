@@ -77,8 +77,8 @@ export default function VerifyForm() {
         </FormField>
 
         <FormField
-          label="Employer Wallet Private Key"
-          hint="Signs the on-chain verification transaction — never stored"
+          label="Signing Wallet Private Key"
+          hint="Funded wallet that signs the on-chain verification transaction — never stored"
           required
           htmlFor="verifyPrivateKey"
         >

@@ -218,52 +218,6 @@ function UniversityDashboard() {
   );
 }
 
-// ── Employer ───────────────────────────────────────────────────────────────────
-function EmployerDashboard() {
-  return (
-    <div className="space-y-6">
-      <div className="grid sm:grid-cols-2 gap-6">
-        {/* CTA card */}
-        <div className="rounded-2xl p-6 border border-accent/20 bg-accent/[0.07]">
-          <div className="w-14 h-14 rounded-2xl bg-accent/15 border border-accent/25 flex items-center justify-center text-3xl mb-5">🔍</div>
-          <h3 className="text-xl font-bold text-fg mb-1">Verify a Degree</h3>
-          <p className="text-muted text-sm mb-6 leading-relaxed">
-            Check the authenticity of any degree credential against the private blockchain in real-time.
-          </p>
-          <Link to="/verify">
-            <button
-              data-testid="go-verify"
-              className="bg-accent text-accent-fg font-bold text-sm px-5 py-2.5 rounded-xl hover:opacity-90 transition-all shadow-lg shadow-accent/25"
-            >
-              Start Verification →
-            </button>
-          </Link>
-        </div>
-
-        {/* How it works */}
-        <Card title="How Verification Works">
-          <ol className="space-y-3 text-sm">
-            {[
-              "Obtain the degree hash from the university or student.",
-              "Enter the hash and your employer wallet private key.",
-              "The system queries the private blockchain in real-time.",
-              <>Result: <Badge variant="valid">VALID</Badge>, <Badge variant="revoked">REVOKED</Badge>, or <Badge variant="fraud">INVALID</Badge>.</>,
-              "Each verification emits an on-chain event — permanent audit trail.",
-            ].map((step, i) => (
-              <li key={i} className="flex gap-3">
-                <span className="w-6 h-6 rounded-full bg-accent/15 border border-accent/25 text-accent text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
-                  {i + 1}
-                </span>
-                <span className="text-muted">{step}</span>
-              </li>
-            ))}
-          </ol>
-        </Card>
-      </div>
-    </div>
-  );
-}
-
 // ── Root ───────────────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const user = getUser();
@@ -271,7 +225,6 @@ export default function Dashboard() {
   const subtitle = {
     admin:      "System Administrator",
     university: "University Portal · Iqra University",
-    employer:   "Employer Portal",
   };
 
   return (
@@ -283,7 +236,6 @@ export default function Dashboard() {
 
       {user?.role === "admin"      && <AdminDashboard />}
       {user?.role === "university" && <UniversityDashboard />}
-      {user?.role === "employer"   && <EmployerDashboard />}
     </div>
   );
 }

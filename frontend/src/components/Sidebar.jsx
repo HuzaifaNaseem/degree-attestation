@@ -55,22 +55,20 @@ const Icons = {
 /* ── Role → nav links ─────────────────────────────────────── */
 const ROLE_LINKS = {
   admin: [
-    { to: "/dashboard", label: "Dashboard",  Icon: Icons.Dashboard },
-    { to: "/requests",  label: "Requests",   Icon: Icons.Verify    },
-    { to: "/logs",      label: "Audit Logs", Icon: Icons.Logs      },
-    { to: "/reports",   label: "Reports",    Icon: Icons.Reports   },
-    { to: "/admin",     label: "Users",      Icon: Icons.Users     },
+    { to: "/dashboard", label: "Dashboard",     Icon: Icons.Dashboard },
+    { to: "/requests",  label: "Requests",      Icon: Icons.Verify    },
+    { to: "/verify",    label: "Verify Degree", Icon: Icons.Verify    },
+    { to: "/logs",      label: "Audit Logs",    Icon: Icons.Logs      },
+    { to: "/reports",   label: "Reports",       Icon: Icons.Reports   },
+    { to: "/admin",     label: "Users",         Icon: Icons.Users     },
   ],
   university: [
-    { to: "/dashboard",  label: "Dashboard",    Icon: Icons.Dashboard },
-    { to: "/requests",   label: "Requests",     Icon: Icons.Verify    },
-    { to: "/issue",      label: "Issue Degree", Icon: Icons.Issue     },
-    { to: "/bulk-issue", label: "Bulk Issue",   Icon: Icons.Users     },
-    { to: "/logs",       label: "TX Logs",      Icon: Icons.Logs      },
-  ],
-  employer: [
-    { to: "/dashboard", label: "Dashboard",     Icon: Icons.Dashboard },
-    { to: "/verify",    label: "Verify Degree", Icon: Icons.Verify    },
+    { to: "/dashboard",  label: "Dashboard",     Icon: Icons.Dashboard },
+    { to: "/requests",   label: "Requests",      Icon: Icons.Verify    },
+    { to: "/issue",      label: "Issue Degree",  Icon: Icons.Issue     },
+    { to: "/bulk-issue", label: "Bulk Issue",    Icon: Icons.Users     },
+    { to: "/verify",     label: "Verify Degree", Icon: Icons.Verify    },
+    { to: "/logs",       label: "TX Logs",       Icon: Icons.Logs      },
   ],
   student: [
     { to: "/my-credentials", label: "My Credentials", Icon: Icons.Issue },

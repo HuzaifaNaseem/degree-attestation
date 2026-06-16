@@ -136,9 +136,9 @@ export default function App() {
         </PrivateRoute>
       } />
 
-      {/* ── Employer only ── */}
+      {/* ── University + admin (official on-chain verification) ── */}
       <Route path="/verify" element={
-        <PrivateRoute roles={["employer"]}>
+        <PrivateRoute roles={["university", "admin"]}>
           <AppShell><VerifyDegree /></AppShell>
         </PrivateRoute>
       } />
