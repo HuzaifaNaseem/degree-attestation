@@ -30,6 +30,8 @@ export default function AdminPanel() {
 
   const setR = (k) => (e) => setReg((f) => ({ ...f, [k]: e.target.value }));
 
+  const me = (() => { try { return JSON.parse(localStorage.getItem("user")); } catch { return null; } })();
+
   async function loadUsers() {
     try {
       const { data } = await api.get("/admin/users");
@@ -40,20 +42,30 @@ export default function AdminPanel() {
 
   useEffect(() => { loadUsers(); }, []);
 
-  async function grantRole(type) {
+  async function grantRole() {
     if (!grantAddr.startsWith("0x")) {
       setToast({ type: "error", message: "Wallet address must start with 0x" });
       return;
     }
-    setGranting(type);
+    setGranting("university");
     try {
-      const endpoint = type === "university" ? "/admin/grant-university" : "/admin/grant-employer";
-      const { data } = await api.post(endpoint, { walletAddress: grantAddr });
-      setToast({ type: "success", message: `${type} role granted. TX: ${data.txHash?.slice(0, 20)}…` });
+      const { data } = await api.post("/admin/grant-university", { walletAddress: grantAddr });
+      setToast({ type: "success", message: `University role granted. TX: ${data.txHash?.slice(0, 20)}…` });
       setGrantAddr("");
     } catch (err) {
       setToast({ type: "error", message: err.response?.data?.error || "Grant failed" });
     } finally { setGranting(""); }
+  }
+
+  async function deleteUser(u) {
+    if (!window.confirm(`Delete ${u.email}? This permanently removes their account.`)) return;
+    try {
+      await api.delete(`/admin/users/${u._id}`);
+      setToast({ type: "success", message: `Deleted ${u.email}` });
+      loadUsers();
+    } catch (err) {
+      setToast({ type: "error", message: err.response?.data?.error || "Delete failed" });
+    }
   }
 
   async function registerUser(e) {
@@ -98,7 +110,6 @@ export default function AdminPanel() {
               <select id="reg-role" value={reg.role} onChange={setR("role")}
                 data-testid="select-reg-role" className={inputCls}>
                 <option value="university">University</option>
-                <option value="employer">Employer</option>
                 <option value="admin">Admin</option>
               </select>
             </FormField>
@@ -125,14 +136,9 @@ export default function AdminPanel() {
                 className={`${inputCls} font-mono`}
               />
             </FormField>
-            <div className="grid grid-cols-2 gap-3">
-              <Button onClick={() => grantRole("university")} loading={granting === "university"} data-testid="btn-grant-university">
-                Grant UNIVERSITY
-              </Button>
-              <Button variant="success" onClick={() => grantRole("employer")} loading={granting === "employer"} data-testid="btn-grant-employer">
-                Grant EMPLOYER
-              </Button>
-            </div>
+            <Button onClick={grantRole} loading={granting === "university"} data-testid="btn-grant-university" className="w-full">
+              Grant UNIVERSITY_ROLE
+            </Button>
             <p className="text-xs text-faint leading-relaxed">
               The deployer wallet (<code className="text-accent/80 font-mono text-xs">DEPLOYER_PRIVATE_KEY</code> in .env) signs the transaction automatically.
             </p>
@@ -149,7 +155,7 @@ export default function AdminPanel() {
             <table className="min-w-full text-sm" data-testid="users-table">
               <thead className="text-xs uppercase tracking-wider text-faint border-b border-line">
                 <tr>
-                  {["", "Name", "Email", "Role", "Wallet", "Active", "Joined"].map((h) => (
+                  {["", "Name", "Email", "Role", "Wallet", "Active", "Joined", "Actions"].map((h) => (
                     <th key={h} className="text-left py-3 pr-6">{h}</th>
                   ))}
                 </tr>
@@ -173,8 +179,18 @@ export default function AdminPanel() {
                     <td className="py-3 pr-6">
                       <Badge variant={u.isActive ? "valid" : "neutral"}>{u.isActive ? "Yes" : "No"}</Badge>
                     </td>
-                    <td className="py-3 text-xs text-faint">
+                    <td className="py-3 pr-6 text-xs text-faint">
                       {new Date(u.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="py-3">
+                      {me && String(me._id) === String(u._id) ? (
+                        <span className="text-xs text-faint">You</span>
+                      ) : (
+                        <button onClick={() => deleteUser(u)} data-testid="delete-user"
+                          className="text-xs font-semibold text-red-500 hover:bg-red-500/10 border border-red-500/30 rounded-lg px-2.5 py-1 transition-colors">
+                          Delete
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

@@ -11,6 +11,7 @@ const express         = require("express");
 const { requireAuth } = require("../middleware/auth");
 const contractService = require("../services/contractService");
 const User            = require("../models/User");
+const AuditLog        = require("../models/AuditLog");
 
 const router = express.Router();
 
@@ -54,6 +55,34 @@ router.get("/users", requireAuth(["admin"]), async (req, res, next) => {
   try {
     const users = await User.find().select("-passwordHash").sort({ createdAt: -1 });
     res.json({ users, total: users.length });
+  } catch (err) { next(err); }
+});
+
+// DELETE /api/admin/users/:id — admin removes another account
+router.delete("/users/:id", requireAuth(["admin"]), async (req, res, next) => {
+  try {
+    const target = await User.findById(req.params.id);
+    if (!target) return res.status(404).json({ error: "User not found" });
+
+    if (String(target._id) === String(req.user.userId)) {
+      return res.status(400).json({ error: "Use \"Delete account\" to remove your own account." });
+    }
+    if (target.role === "admin") {
+      const admins = await User.countDocuments({ role: "admin" });
+      if (admins <= 1) return res.status(400).json({ error: "Cannot delete the only admin account." });
+    }
+
+    await User.deleteOne({ _id: target._id });
+
+    await AuditLog.create({
+      eventType: "ACCOUNT_DELETED",
+      actor:     req.user.walletAddress,
+      actorRole: "admin",
+      details:   { deletedEmail: target.email, deletedRole: target.role },
+      isFraud:   false,
+    }).catch(() => {});
+
+    res.json({ ok: true });
   } catch (err) { next(err); }
 });
 
