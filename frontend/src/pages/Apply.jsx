@@ -16,6 +16,28 @@ import { compressImage, ocrImage } from "../lib/docScan";
 
 const INITIAL = { applicantName: "", studentId: "", program: "", graduationDate: "", email: "", nationalId: "" };
 
+// Real program catalog with attestation fees (must match the backend PROGRAM_FEES table).
+const PROGRAMS = [
+  { value: "BS Computer Science", fee: 3000 },
+  { value: "BS Software Engineering", fee: 3000 },
+  { value: "BS Artificial Intelligence", fee: 3000 },
+  { value: "BS Information Technology", fee: 3000 },
+  { value: "BS Electrical Engineering", fee: 3000 },
+  { value: "BS Accounting & Finance", fee: 3000 },
+  { value: "BBA (Bachelor of Business Administration)", fee: 3000 },
+  { value: "MS Computer Science", fee: 6000 },
+  { value: "MS Data Science", fee: 6000 },
+  { value: "MBA (Master of Business Administration)", fee: 6000 },
+  { value: "MPhil Computer Science", fee: 6000 },
+  { value: "PhD Computer Science", fee: 6000 },
+];
+
+// Pakistani CNIC → 13 digits formatted 00000-0000000-0 (digits only, capped at 13).
+const formatCnic = (raw) => {
+  const d = String(raw).replace(/\D/g, "").slice(0, 13);
+  return [d.slice(0, 5), d.slice(5, 12), d.slice(12, 13)].filter(Boolean).join("-");
+};
+
 // The supporting documents we collect for attestation.
 const DOC_SLOTS = [
   { type: "cnic",         label: "CNIC / National ID",      hint: "Front of your ID card" },
@@ -31,6 +53,11 @@ export default function Apply() {
   const [error, setError]     = useState("");
   const [loading, setLoading] = useState(false);
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  // Derived: selected program fee + live CNIC validity
+  const fee        = PROGRAMS.find((p) => p.value === form.program)?.fee ?? null;
+  const cnicDigits = form.nationalId.replace(/\D/g, "");
+  const cnicValid  = cnicDigits.length === 13;
 
   async function handleFile(slot, file) {
     if (!file) return;
@@ -128,7 +155,12 @@ export default function Apply() {
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <FormField label="Degree Program" required htmlFor="prog">
-                  <input id="prog" required value={form.program} onChange={set("program")} placeholder="e.g. BS Computer Science" className={inputCls} />
+                  <select id="prog" required value={form.program} onChange={set("program")} className={inputCls}>
+                    <option value="" disabled>Select your degree…</option>
+                    {PROGRAMS.map((p) => (
+                      <option key={p.value} value={p.value}>{p.value} — Rs. {p.fee.toLocaleString()}</option>
+                    ))}
+                  </select>
                 </FormField>
                 <FormField label="Graduation Date" required htmlFor="gd">
                   <input id="gd" type="date" required value={form.graduationDate} onChange={set("graduationDate")} className={inputCls} />
@@ -137,8 +169,18 @@ export default function Apply() {
               <FormField label="Email" required htmlFor="em">
                 <input id="em" type="email" required value={form.email} onChange={set("email")} placeholder="you@example.com" className={inputCls} />
               </FormField>
-              <FormField label="National ID / CNIC" hint="Encrypted (AES-256) — never stored on-chain" required htmlFor="nid">
-                <input id="nid" required value={form.nationalId} onChange={set("nationalId")} placeholder="42101-1234567-1" className={inputCls} />
+              <FormField label="National ID / CNIC" hint="13-digit CNIC · Encrypted (AES-256) — never stored on-chain" required htmlFor="nid">
+                <input
+                  id="nid" required inputMode="numeric" autoComplete="off"
+                  value={form.nationalId}
+                  onChange={(e) => setForm((f) => ({ ...f, nationalId: formatCnic(e.target.value) }))}
+                  placeholder="42101-1234567-1"
+                  className={`${inputCls} ${form.nationalId && !cnicValid ? "border-red-500/60" : cnicValid ? "border-emerald-500/50" : ""}`}
+                />
+                {form.nationalId && !cnicValid && (
+                  <p className="text-xs text-red-500 mt-1">CNIC must be exactly 13 digits ({cnicDigits.length}/13).</p>
+                )}
+                {cnicValid && <p className="text-xs text-emerald-500 mt-1">✓ Valid CNIC format</p>}
               </FormField>
 
               {/* ── Document uploads ── */}
@@ -155,8 +197,12 @@ export default function Apply() {
               {error && <p className="text-sm text-red-500 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">{error}</p>}
 
               <div className="flex items-center justify-between pt-1">
-                <p className="text-xs text-muted">Fee: Bachelor Rs.3,000 · Master/PhD Rs.6,000.</p>
-                <Button type="submit" loading={loading} disabled={scanning} data-testid="submit-apply">
+                <p className="text-sm">
+                  {fee != null
+                    ? <>Attestation fee: <span className="font-bold text-accent">Rs. {fee.toLocaleString()}</span></>
+                    : <span className="text-xs text-muted">Select a program to see the fee.</span>}
+                </p>
+                <Button type="submit" loading={loading} disabled={scanning || !form.program || !cnicValid} data-testid="submit-apply">
                   {loading ? "Submitting…" : scanning ? "Scanning documents…" : "Submit Application →"}
                 </Button>
               </div>

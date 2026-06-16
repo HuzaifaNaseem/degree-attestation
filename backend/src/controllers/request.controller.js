@@ -16,9 +16,28 @@ const contractService = require("../services/contractService");
 const { analyzeRequest: runAIReview } = require("../services/aiReviewService");
 const { writeEntry }  = require("../services/auditLogger");
 
+// Authoritative attestation-fee table (PKR). The client picks a program from a
+// fixed dropdown; the server still derives the fee here so it can never be faked.
+const PROGRAM_FEES = {
+  "BS Computer Science": 3000,
+  "BS Software Engineering": 3000,
+  "BS Artificial Intelligence": 3000,
+  "BS Information Technology": 3000,
+  "BS Electrical Engineering": 3000,
+  "BS Accounting & Finance": 3000,
+  "BBA (Bachelor of Business Administration)": 3000,
+  "MS Computer Science": 6000,
+  "MS Data Science": 6000,
+  "MBA (Master of Business Administration)": 6000,
+  "MPhil Computer Science": 6000,
+  "PhD Computer Science": 6000,
+};
+
 function feeFor(program = "") {
+  if (PROGRAM_FEES[program] != null) return PROGRAM_FEES[program];
+  // Fallback for any free-text/legacy value (word-boundary so "systems" ≠ "ms")
   const p = program.toLowerCase();
-  return /mba|ms |master|m\.?s|m\.?phil|phd|doctor/.test(p) ? 6000 : 3000;
+  return /\b(mba|ms|msc|m\.?s|master|m\.?phil|mphil|phd|doctor)\b/.test(p) ? 6000 : 3000;
 }
 
 const DOC_TYPES = ["cnic", "payment", "matric", "intermediate", "other"];
@@ -44,6 +63,11 @@ const submitRequest = async (req, res, next) => {
     const { applicantName, studentId, program, graduationDate, email, nationalId, documents } = req.body;
     if (!applicantName || !studentId || !program || !graduationDate || !email || !nationalId) {
       return res.status(400).json({ error: "All fields are required" });
+    }
+    // CNIC must be exactly 13 digits (Pakistani national ID) — reject fake/short values.
+    const cnicDigits = String(nationalId).replace(/\D/g, "");
+    if (cnicDigits.length !== 13) {
+      return res.status(400).json({ error: "CNIC must be exactly 13 digits." });
     }
     const reqDoc = await Request.create({
       applicantName, studentId, program,
