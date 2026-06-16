@@ -85,9 +85,12 @@ export default function Apply() {
 
   const scanning = Object.values(docs).some((d) => d.status === "scanning");
   const attachedCount = Object.values(docs).filter((d) => d.dataUrl).length;
+  const allDocsAttached = DOC_SLOTS.every((s) => docs[s.type]?.dataUrl);
 
   async function submit(e) {
     e.preventDefault();
+    if (!allDocsAttached) { setError("Please upload all four documents before submitting."); return; }
+    if (!cnicValid) { setError("Enter a valid 13-digit CNIC."); return; }
     setError(""); setLoading(true);
     try {
       const documents = DOC_SLOTS
@@ -185,13 +188,16 @@ export default function Apply() {
 
               {/* ── Document uploads ── */}
               <div className="pt-2">
-                <p className="text-sm font-semibold text-fg">Supporting Documents</p>
-                <p className="text-xs text-muted mt-0.5 mb-3">Upload clear photos/scans. Text is extracted in your browser (OCR) so the reviewer can verify them.</p>
+                <p className="text-sm font-semibold text-fg">Supporting Documents <span className="text-red-500">*</span></p>
+                <p className="text-xs text-muted mt-0.5 mb-3">All four are required. Upload clear photos/scans — text is extracted in your browser (OCR) so the reviewer can verify them.</p>
                 <div className="grid sm:grid-cols-2 gap-3">
                   {DOC_SLOTS.map((slot) => (
                     <DocSlot key={slot.type} slot={slot} doc={docs[slot.type]} onFile={handleFile} onRemove={removeDoc} />
                   ))}
                 </div>
+                {!allDocsAttached && (
+                  <p className="text-xs text-amber-600 mt-2">All four documents are required to submit ({attachedCount}/4 uploaded).</p>
+                )}
               </div>
 
               {error && <p className="text-sm text-red-500 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">{error}</p>}
@@ -202,7 +208,7 @@ export default function Apply() {
                     ? <>Attestation fee: <span className="font-bold text-accent">Rs. {fee.toLocaleString()}</span></>
                     : <span className="text-xs text-muted">Select a program to see the fee.</span>}
                 </p>
-                <Button type="submit" loading={loading} disabled={scanning || !form.program || !cnicValid} data-testid="submit-apply">
+                <Button type="submit" loading={loading} disabled={scanning || !form.program || !cnicValid || !allDocsAttached} data-testid="submit-apply">
                   {loading ? "Submitting…" : scanning ? "Scanning documents…" : "Submit Application →"}
                 </Button>
               </div>

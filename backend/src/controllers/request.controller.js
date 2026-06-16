@@ -41,6 +41,7 @@ function feeFor(program = "") {
 }
 
 const DOC_TYPES = ["cnic", "payment", "matric", "intermediate", "other"];
+const REQUIRED_DOCS = ["cnic", "payment", "matric", "intermediate"];
 
 /** Normalise + encrypt the documents submitted with an application. */
 function buildDocuments(docs = []) {
@@ -69,13 +70,22 @@ const submitRequest = async (req, res, next) => {
     if (cnicDigits.length !== 13) {
       return res.status(400).json({ error: "CNIC must be exactly 13 digits." });
     }
+
+    // All supporting documents are mandatory — no application without them.
+    const docs = buildDocuments(documents);
+    const have = new Set(docs.map((d) => d.type));
+    const missing = REQUIRED_DOCS.filter((t) => !have.has(t));
+    if (missing.length) {
+      return res.status(400).json({ error: `Please upload all required documents (missing: ${missing.join(", ")}).` });
+    }
+
     const reqDoc = await Request.create({
       applicantName, studentId, program,
       graduationDate: Number(graduationDate),
       email,
       nationalIdEnc: encrypt(String(nationalId)),
       fee: feeFor(program),
-      documents: buildDocuments(documents),
+      documents: docs,
     });
     const safe = reqDoc.toObject();
     delete safe.nationalIdEnc;
