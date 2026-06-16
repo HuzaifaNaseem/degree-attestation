@@ -14,9 +14,11 @@
  *   /reports    — admin
  *   /admin      — admin
  */
+import { useState } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar         from "./components/Sidebar";
+import Logo            from "./components/Logo";
 import Landing         from "./pages/Landing";
 import PublicVerify    from "./pages/PublicVerify";
 import Explorer        from "./pages/Explorer";
@@ -66,14 +68,29 @@ function PageTransition({ children }) {
   );
 }
 
-/** Wraps authenticated pages with the sidebar shell. */
+/** Wraps authenticated pages with the sidebar shell.
+ *  Desktop: static sidebar. Mobile (<lg): a top bar with a hamburger that
+ *  slides the sidebar in as an overlay drawer. */
 function AppShell({ children }) {
+  const [navOpen, setNavOpen] = useState(false);
   return (
     <div className="flex h-screen overflow-hidden bg-bg">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto">
-        <PageTransition>{children}</PageTransition>
-      </main>
+      <Sidebar open={navOpen} onClose={() => setNavOpen(false)} />
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Mobile top bar */}
+        <div className="lg:hidden flex items-center gap-3 h-14 px-4 border-b border-line-soft bg-sidebar shrink-0">
+          <button onClick={() => setNavOpen(true)} aria-label="Open menu" data-testid="open-nav"
+            className="w-9 h-9 -ml-1 flex items-center justify-center rounded-lg text-fg hover:bg-fg/5 transition-colors">
+            <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <Logo size={28} textClass="text-fg text-sm" />
+        </div>
+        <main className="flex-1 overflow-y-auto">
+          <PageTransition>{children}</PageTransition>
+        </main>
+      </div>
     </div>
   );
 }

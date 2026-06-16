@@ -82,7 +82,7 @@ const ROLE_BADGE = {
   student:    "bg-cyan-500/15 text-cyan-500 border border-cyan-500/30",
 };
 
-export default function Sidebar() {
+export default function Sidebar({ open = false, onClose = () => {} }) {
   const navigate  = useNavigate();
   const user      = getUser();
   const links     = ROLE_LINKS[user?.role] ?? [];
@@ -98,11 +98,18 @@ export default function Sidebar() {
     : "?";
 
   return (
-    <aside className="w-64 shrink-0 flex flex-col h-screen bg-sidebar border-r border-line-soft">
+    <>
+      {/* Mobile backdrop */}
+      {open && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={onClose} aria-hidden />}
 
-      {/* ── Logo ── */}
-      <div className="px-5 py-5 border-b border-line-soft">
+      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 shrink-0 flex flex-col h-screen bg-sidebar border-r border-line-soft
+        transform transition-transform duration-300 lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
+
+      {/* ── Logo (+ mobile close) ── */}
+      <div className="px-5 py-5 border-b border-line-soft flex items-center justify-between">
         <Logo size={36} sub="Credential Platform" textClass="text-fg text-sm" />
+        <button onClick={onClose} aria-label="Close menu"
+          className="lg:hidden w-8 h-8 -mr-1 flex items-center justify-center rounded-lg text-muted hover:text-fg hover:bg-fg/5">✕</button>
       </div>
 
       {/* ── Role badge ── */}
@@ -118,6 +125,7 @@ export default function Sidebar() {
           <NavLink
             key={to}
             to={to}
+            onClick={onClose}
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 isActive
@@ -165,6 +173,7 @@ export default function Sidebar() {
           Sign Out
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }
