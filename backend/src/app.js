@@ -57,7 +57,9 @@ const LOGS_DIR = path.join(__dirname, "../../logs");
 if (!fs.existsSync(LOGS_DIR)) fs.mkdirSync(LOGS_DIR, { recursive: true });
 
 app.use(cors());
-app.use(express.json());
+// Raised from the 100kb default: applications include base64 document images
+// (CNIC / payment / marksheets) which exceed the default body-size limit.
+app.use(express.json({ limit: "25mb" }));
 
 // HTTP request log (Morgan combined → logs/access.log + dev format to stdout)
 const logStream = fs.createWriteStream(
